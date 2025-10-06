@@ -1,10 +1,9 @@
-const CACHE_NAME = "cashlytics-v2.4";
+const CACHE_NAME = "cashlytics-v2.5";
 const urlsToCache = [
   "/cashlytics-web-app/",
   "/cashlytics-web-app/index.html",
   "/cashlytics-web-app/manifest.json",
-  "https://cdn.jsdelivr.net/npm/chart.js",
-  "https://apis.google.com/js/api.js"
+  "https://cdn.jsdelivr.net/npm/chart.js"
 ];
 
 // Install event - cache resources
