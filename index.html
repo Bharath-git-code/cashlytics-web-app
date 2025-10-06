@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2196F3">
+    <title>Cashlytics - Personal Finance Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%232196F3'/%3E%3Ctext x='50' y='60' font-family='Arial' font-size='40' fill='white' text-anchor='middle'%3E💰%3C/text%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            max-width: 420px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .tab-bar {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 90px;
+            z-index: 99;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 5px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #2196F3;
+            color: white;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #2196F3;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .book-item {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #2196F3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .book-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
+        }
+        
+        .book-item h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .book-item .description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .balance.positive {
+            color: #4CAF50;
+        }
+        
+        .balance.negative {
+            color: #f44336;
+        }
+        
+        .balance.neutral {
+            color: #666;
+        }
+        
+        .transaction-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .transaction-item.income {
+            border-left-color: #4CAF50;
+            background: linear-gradient(135deg, #ffffff, #f1f8e9);
+        }
+        
+        .transaction-item.expense {
+            border-left-color: #f44336;
+            background: linear-gradient(135deg, #ffffff, #ffebee);
+        }
+        
+        .transaction-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+        
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .transaction-amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .transaction-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.6);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            box-shadow: 0 3px 10px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            box-shadow: 0 3px 10px rgba(244, 67, 54, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #388e3c);
+            box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-state img {
+            width: 80px;
+            height: 80px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+        
+        .currency-selector {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .currency-option {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .currency-option.selected {
+            border-color: #2196F3;
+            background: rgba(33, 150, 243, 0.1);
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <button class="back-btn hidden" id="backBtn" onclick="goBack()">←</button>
+            <div class="logo">💰</div>
+            <h1 id="headerTitle">Cashlytics</h1>
+            <p id="headerSubtitle">Personal Finance Tracker</p>
+        </div>
+        
+        <div class="tab-bar" id="tabBar">
+            <button class="tab active" onclick="showTab('books')">📚 Books</button>
+            <button class="tab" onclick="showTab('transactions')">💳 Transactions</button>
+            <button class="tab" onclick="showTab('reports')">📊 Reports</button>
+            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
+        </div>
+        
+        <div class="content">
+            <!-- Books Tab -->
+            <div id="books-tab" class="tab-content">
+                <div id="books-list">
+                    <!-- Books will be loaded here -->
+                </div>
+                <button class="btn" onclick="showAddBookModal()">+ Add New Transaction Book</button>
+            </div>
+            
+            <!-- Transactions Tab -->
+            <div id="transactions-tab" class="tab-content hidden">
+                <div id="transactions-header">
+                    <h3>All Transactions</h3>
+                </div>
+                <div id="transactions-list">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content hidden">
+                <h3>Financial Summary</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value positive" id="totalIncome">₹0</div>
+                        <div class="stat-label">Total Income</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value negative" id="totalExpenses">₹0</div>
+                        <div class="stat-label">Total Expenses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="netBalance">₹0</div>
+                        <div class="stat-label">Net Balance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTransactions">0</div>
+                        <div class="stat-label">Transactions</div>
+                    </div>
+                </div>
+                <div id="reports-content">
+                    <!-- Detailed reports will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content hidden">
+                <h3>Settings</h3>
+                
+                <div class="card">
+                    <h4>Currency Settings</h4>
+                    <div class="currency-selector">
+                        <div class="currency-option selected" onclick="setCurrency('INR', '₹')">
+                            <strong>₹</strong><br>INR
+                        </div>
+                        <div class="currency-option" onclick="setCurrency('USD', '$')">
+                            <strong>$</strong><br>USD
+                        </div>
+                        <div class="currency-option" onclick="setCurrency('EUR', '€')">
+                            <strong>€</strong><br>EUR
+                        </div>
+                        <div class="currency-option" onclick="setCurrency('GBP', '£')">
+                            <strong>£</strong><br>GBP
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h4>Transaction Types</h4>
+                    <div id="transaction-types">
+                        <!-- Transaction types will be loaded here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="showAddTypeModal()">Add Transaction Type</button>
+                </div>
+
+                <div class="card">
+                    <h4>Payment Modes</h4>
+                    <div id="payment-modes">
+                        <!-- Payment modes will be loaded here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="showAddPaymentModeModal()">Add Payment Mode</button>
+                </div>
+                
+                <div class="card">
+                    <h4>Data Management</h4>
+                    <button class="btn btn-success" onclick="exportData()">📤 Export Data</button>
+                    <button class="btn btn-secondary" onclick="importData()">📥 Import Data</button>
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="fab" onclick="showAddTransactionModal()">+</button>
+
+    <!-- Modals -->
+    <!-- Add Book Modal -->
+    <div id="addBookModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Book</h3>
+                <button class="close-btn" onclick="closeModal('addBookModal')">&times;</button>
+            </div>
+            <form onsubmit="addBook(event)">
+                <div class="form-group">
+                    <label>Book Name</label>
+                    <input type="text" id="bookName" required placeholder="e.g., Personal Expenses">
+                </div>
+                <div class="form-group">
+                    <label>Description (Optional)</label>
+                    <textarea id="bookDescription" placeholder="Brief description of this book"></textarea>
+                </div>
+                <button type="submit" class="btn">Create Book</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Transaction Modal -->
+    <div id="addTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Transaction</h3>
+                <button class="close-btn" onclick="closeModal('addTransactionModal')">&times;</button>
+            </div>
+            <form onsubmit="addTransaction(event)">
+                <div class="form-group">
+                    <label>Book</label>
+                    <select id="transactionBook" required>
+                        <!-- Books will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="transactionType" required>
+                        <option value="income">Cash In (Income)</option>
+                        <option value="expense">Cash Out (Expense)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="transactionAmount" required step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="transactionDescription" required placeholder="What was this for?">
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="transactionPaymentMode" required>
+                        <!-- Payment modes will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="transactionCategory" required>
+                        <!-- Categories will be populated here -->
+                    </select>
+                </div>
+                <button type="submit" class="btn">Add Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Type Modal -->
+    <div id="addTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Transaction Type</h3>
+                <button class="close-btn" onclick="closeModal('addTypeModal')">&times;</button>
+            </div>
+            <form onsubmit="addTransactionType(event)">
+                <div class="form-group">
+                    <label>Type Name</label>
+                    <input type="text" id="typeName" required placeholder="e.g., Food, Transportation">
+                </div>
+                <button type="submit" class="btn">Add Type</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Payment Mode Modal -->
+    <div id="addPaymentModeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Payment Mode</h3>
+                <button class="close-btn" onclick="closeModal('addPaymentModeModal')">&times;</button>
+            </div>
+            <form onsubmit="addPaymentMode(event)">
+                <div class="form-group">
+                    <label>Payment Mode Name</label>
+                    <input type="text" id="paymentModeName" required placeholder="e.g., Credit Card, UPI">
+                </div>
+                <button type="submit" class="btn">Add Payment Mode</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced App State with better storage
+        let appState = {
+            books: [],
+            transactions: [],
+            transactionTypes: [],
+            paymentModes: [],
+            settings: {
+                currency: 'INR',
+                currencySymbol: '₹',
+                theme: 'light'
+            },
+            currentBook: null
+        };
+
+        // Storage keys
+        const STORAGE_KEYS = {
+            books: 'cashlytics_books_v2',
+            transactions: 'cashlytics_transactions_v2',
+            transactionTypes: 'cashlytics_types_v2',
+            paymentModes: 'cashlytics_payment_modes_v2',
+            settings: 'cashlytics_settings_v2',
+            lastBackup: 'cashlytics_last_backup'
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAppData();
+            initializeDefaultData();
+            loadBooks();
+            loadTransactions();
+            updateStats();
+            
+            // Auto-backup every 24 hours
+            checkAutoBackup();
+            
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(console.error);
+            }
+        });
+
+        // Enhanced storage functions with backup and versioning
+        function saveAppData() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.books, JSON.stringify(appState.books));
+                localStorage.setItem(STORAGE_KEYS.transactions, JSON.stringify(appState.transactions));
+                localStorage.setItem(STORAGE_KEYS.transactionTypes, JSON.stringify(appState.transactionTypes));
+                localStorage.setItem(STORAGE_KEYS.paymentModes, JSON.stringify(appState.paymentModes));
+                localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(appState.settings));
+                
+                // Create automatic backup
+                createAutoBackup();
+                
+                console.log('Data saved successfully');
+                return true;
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('Error saving data. Storage might be full.');
+                return false;
+            }
+        }
+
+        function loadAppData() {
+            try {
+                appState.books = JSON.parse(localStorage.getItem(STORAGE_KEYS.books)) || [];
+                appState.transactions = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactions)) || [];
+                appState.transactionTypes = JSON.parse(localStorage.getItem(STORAGE_KEYS.transactionTypes)) || [];
+                appState.paymentModes = JSON.parse(localStorage.getItem(STORAGE_KEYS.paymentModes)) || [];
+                appState.settings = Object.assign(appState.settings, JSON.parse(localStorage.getItem(STORAGE_KEYS.settings)) || {});
+                
+                console.log('Data loaded successfully');
+            } catch (error) {
+                console.error('Error loading data:', error);
+                initializeDefaultData();
+            }
+        }
+
+        function createAutoBackup() {
+            const backupData = {
+                books: appState.books,
+                transactions: appState.transactions,
+                transactionTypes: appState.transactionTypes,
+                paymentModes: appState.paymentModes,
+                settings: appState.settings,
+                timestamp: new Date().toISOString(),
+                version: '2.0'
+            };
+            
+            localStorage.setItem('cashlytics_auto_backup', JSON.stringify(backupData));
+            localStorage.setItem(STORAGE_KEYS.lastBackup, new Date().toISOString());
+        }
+
+        function initializeDefaultData() {
+            if (appState.books.length === 0) {
+                appState.books.push({
+                    id: Date.now(),
+                    name: 'Personal Expenses',
+                    description: 'My personal daily expenses',
+                    balance: 0,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            if (appState.transactionTypes.length === 0) {
+                appState.transactionTypes = [
+                    'Food & Dining', 'Transportation', 'Shopping', 'Entertainment',
+                    'Bills & Utilities', 'Healthcare', 'Education', 'Investment',
+                    'Salary', 'Business', 'Gift', 'Other'
+                ];
+            }
+
+            if (appState.paymentModes.length === 0) {
+                appState.paymentModes = [
+                    'Cash', 'Credit Card', 'Debit Card', 'UPI', 'Net Banking',
+                    'Digital Wallet', 'Cheque', 'Bank Transfer'
+                ];
+            }
+
+            saveAppData();
+        }
+
+        // Format currency according to Indian system
+        function formatCurrency(amount, short = false) {
+            const symbol = appState.settings.currencySymbol;
+            const absAmount = Math.abs(amount);
+            const sign = amount >= 0 ? '' : '-';
+
+            if (short && absAmount >= 10000000) {
+                return `${sign}${symbol}${(amount/10000000).toFixed(1)}Cr`;
+            } else if (short && absAmount >= 100000) {
+                return `${sign}${symbol}${(amount/100000).toFixed(1)}L`;
+            } else if (short && absAmount >= 1000) {
+                return `${sign}${symbol}${(amount/1000).toFixed(1)}K`;
+            }
+
+            return `${sign}${symbol}${absAmount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            event.target.classList.add('active');
+            
+            // Load tab content
+            switch(tabName) {
+                case 'books':
+                    loadBooks();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    break;
+                case 'reports':
+                    loadReports();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // Load books
+        function loadBooks() {
+            const container = document.getElementById('books-list');
+            container.innerHTML = '';
+            
+            if (appState.books.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No transaction books yet.</p>
+                        <p>Create your first book to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            appState.books.forEach(book => {
+                const bookEl = document.createElement('div');
+                bookEl.className = 'book-item';
+                
+                const balanceClass = book.balance > 0 ? 'positive' : book.balance < 0 ? 'negative' : 'neutral';
+                
+                bookEl.innerHTML = `
+                    <h3>${book.name}</h3>
+                    <div class="description">${book.description || 'No description'}</div>
+                    <div class="balance ${balanceClass}">
+                        ${formatCurrency(book.balance)}
+                    </div>
+                    <small>Created: ${new Date(book.createdAt).toLocaleDateString()}</small>
+                `;
+                
+                bookEl.onclick = () => selectBook(book);
+                container.appendChild(bookEl);
+            });
+        }
+
+        // Load transactions
+        function loadTransactions() {
+            const container = document.getElementById('transactions-list');
+            const header = document.getElementById('transactions-header');
+            
+            let transactionsToShow = appState.transactions;
+            
+            if (appState.currentBook) {
+                transactionsToShow = appState.transactions.filter(t => t.bookId === appState.currentBook.id);
+                header.innerHTML = `<h3>Transactions - ${appState.currentBook.name}</h3>`;
+            } else {
+                header.innerHTML = '<h3>All Transactions</h3>';
+            }
+            
+            container.innerHTML = '';
+            
+            if (transactionsToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No transactions yet.</p>
+                        <p>Tap the + button to add your first transaction!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by date (newest first)
+            transactionsToShow.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            transactionsToShow.forEach(transaction => {
+                const transEl = document.createElement('div');
+                transEl.className = `transaction-item ${transaction.type}`;
+                
+                const book = appState.books.find(b => b.id === transaction.bookId);
+                const bookName = book ? book.name : 'Unknown Book';
+                
+                transEl.innerHTML = `
+                    <div class="transaction-header">
+                        <h4>${transaction.description}</h4>
+                        <div class="transaction-amount ${transaction.type === 'income' ? 'positive' : 'negative'}">
+                            ${transaction.type === 'income' ? '+' : '-'}${formatCurrency(Math.abs(transaction.amount))}
+                        </div>
+                    </div>
+                    <div class="transaction-meta">
+                        <span>📅 ${new Date(transaction.date).toLocaleDateString()}</span>
+                        <span>📖 ${bookName}</span>
+                    </div>
+                    <div class="transaction-meta">
+                        <span>🏷️ ${transaction.category || 'No category'}</span>
+                        <span>💳 ${transaction.paymentMode || 'No payment mode'}</span>
+                    </div>
+                `;
+                
+                container.appendChild(transEl);
+            });
+        }
+
+        // Load reports/statistics
+        function loadReports() {
+            const totalIncome = appState.transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalExpenses = appState.transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const netBalance = totalIncome - totalExpenses;
+            const totalTransactions = appState.transactions.length;
+
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('netBalance').textContent = formatCurrency(netBalance);
+            document.getElementById('netBalance').className = `stat-value ${netBalance >= 0 ? 'positive' : 'negative'}`;
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+
+            // Detailed reports
+            const reportsContent = document.getElementById('reports-content');
+            
+            // Monthly breakdown
+            const monthlyData = {};
+            appState.transactions.forEach(t => {
+                const month = new Date(t.date).toISOString().substring(0, 7);
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { income: 0, expenses: 0 };
+                }
+                
+                if (t.type === 'income') {
+                    monthlyData[month].income += t.amount;
+                } else {
+                    monthlyData[month].expenses += t.amount;
+                }
+            });
+
+            let monthlyHtml = '<div class="card"><h4>Monthly Summary</h4>';
+            Object.keys(monthlyData).sort().reverse().slice(0, 6).forEach(month => {
+                const data = monthlyData[month];
+                const net = data.income - data.expenses;
+                monthlyHtml += `
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <span>${new Date(month + '-01').toLocaleDateString('en-US', {year: 'numeric', month: 'long'})}</span>
+                        <span class="${net >= 0 ? 'positive' : 'negative'}">${formatCurrency(net)}</span>
+                    </div>
+                `;
+            });
+            monthlyHtml += '</div>';
+
+            reportsContent.innerHTML = monthlyHtml;
+        }
+
+        // Load settings
+        function loadSettings() {
+            // Update currency selector
+            document.querySelectorAll('.currency-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Update transaction types
+            const typesContainer = document.getElementById('transaction-types');
+            typesContainer.innerHTML = '';
+            appState.transactionTypes.forEach(type => {
+                const typeEl = document.createElement('div');
+                typeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
+                typeEl.innerHTML = `
+                    <span>${type}</span>
+                    <button onclick="removeTransactionType('${type}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                typesContainer.appendChild(typeEl);
+            });
+
+            // Update payment modes
+            const modesContainer = document.getElementById('payment-modes');
+            modesContainer.innerHTML = '';
+            appState.paymentModes.forEach(mode => {
+                const modeEl = document.createElement('div');
+                modeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
+                modeEl.innerHTML = `
+                    <span>${mode}</span>
+                    <button onclick="removePaymentMode('${mode}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                modesContainer.appendChild(modeEl);
+            });
+        }
+
+        // Modal functions
+        function showAddBookModal() {
+            document.getElementById('addBookModal').classList.add('active');
+        }
+
+        function showAddTransactionModal() {
+            // Populate book select
+            const bookSelect = document.getElementById('transactionBook');
+            bookSelect.innerHTML = '';
+            appState.books.forEach(book => {
+                const option = document.createElement('option');
+                option.value = book.id;
+                option.textContent = book.name;
+                if (appState.currentBook && appState.currentBook.id === book.id) {
+                    option.selected = true;
+                }
+                bookSelect.appendChild(option);
+            });
+
+            // Populate payment modes
+            const paymentModeSelect = document.getElementById('transactionPaymentMode');
+            paymentModeSelect.innerHTML = '';
+            appState.paymentModes.forEach(mode => {
+                const option = document.createElement('option');
+                option.value = mode;
+                option.textContent = mode;
+                paymentModeSelect.appendChild(option);
+            });
+
+            // Populate categories
+            const categorySelect = document.getElementById('transactionCategory');
+            categorySelect.innerHTML = '';
+            appState.transactionTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                categorySelect.appendChild(option);
+            });
+
+            document.getElementById('addTransactionModal').classList.add('active');
+        }
+
+        function showAddTypeModal() {
+            document.getElementById('addTypeModal').classList.add('active');
+        }
+
+        function showAddPaymentModeModal() {
+            document.getElementById('addPaymentModeModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Add functions
+        function addBook(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('bookName').value.trim();
+            const description = document.getElementById('bookDescription').value.trim();
+            
+            if (!name) return;
+
+            const book = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                balance: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            appState.books.push(book);
+            saveAppData();
+            loadBooks();
+            closeModal('addBookModal');
+            
+            // Clear form
+            document.getElementById('bookName').value = '';
+            document.getElementById('bookDescription').value = '';
+        }
+
+        function addTransaction(event) {
+            event.preventDefault();
+            
+            const bookId = parseInt(document.getElementById('transactionBook').value);
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const description = document.getElementById('transactionDescription').value.trim();
+            const paymentMode = document.getElementById('transactionPaymentMode').value;
+            const category = document.getElementById('transactionCategory').value;
+            
+            if (!bookId || !amount || !description) return;
+
+            const transaction = {
+                id: Date.now(),
+                bookId: bookId,
+                type: type,
+                amount: amount,
+                description: description,
+                paymentMode: paymentMode,
+                category: category,
+                date: new Date().toISOString()
+            };
+
+            appState.transactions.push(transaction);
+            
+            // Update book balance
+            const book = appState.books.find(b => b.id === bookId);
+            if (book) {
+                if (type === 'income') {
+                    book.balance += amount;
+                } else {
+                    book.balance -= amount;
+                }
+            }
+
+            saveAppData();
+            loadBooks();
+            loadTransactions();
+            updateStats();
+            closeModal('addTransactionModal');
+            
+            // Clear form
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionDescription').value = '';
+        }
+
+        function addTransactionType(event) {
+            event.preventDefault();
+            
+            const typeName = document.getElementById('typeName').value.trim();
+            if (!typeName || appState.transactionTypes.includes(typeName)) return;
+
+            appState.transactionTypes.push(typeName);
+            saveAppData();
+            loadSettings();
+            closeModal('addTypeModal');
+            
+            document.getElementById('typeName').value = '';
+        }
+
+        function addPaymentMode(event) {
+            event.preventDefault();
+            
+            const modeName = document.getElementById('paymentModeName').value.trim();
+            if (!modeName || appState.paymentModes.includes(modeName)) return;
+
+            appState.paymentModes.push(modeName);
+            saveAppData();
+            loadSettings();
+            closeModal('addPaymentModeModal');
+            
+            document.getElementById('paymentModeName').value = '';
+        }
+
+        // Remove functions
+        function removeTransactionType(typeName) {
+            if (confirm(`Remove transaction type "${typeName}"?`)) {
+                appState.transactionTypes = appState.transactionTypes.filter(t => t !== typeName);
+                saveAppData();
+                loadSettings();
+            }
+        }
+
+        function removePaymentMode(modeName) {
+            if (confirm(`Remove payment mode "${modeName}"?`)) {
+                appState.paymentModes = appState.paymentModes.filter(m => m !== modeName);
+                saveAppData();
+                loadSettings();
+            }
+        }
+
+        // Utility functions
+        function selectBook(book) {
+            appState.currentBook = book;
+            showTab('transactions');
+        }
+
+        function setCurrency(code, symbol) {
+            appState.settings.currency = code;
+            appState.settings.currencySymbol = symbol;
+            saveAppData();
+            
+            // Update UI
+            document.querySelectorAll('.currency-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            // Refresh displays
+            loadBooks();
+            loadTransactions();
+            updateStats();
+        }
+
+        function updateStats() {
+            // This is called after adding transactions to update any displayed stats
+            if (document.getElementById('reports-tab').classList.contains('hidden') === false) {
+                loadReports();
+            }
+        }
+
+        function exportData() {
+            const exportData = {
+                books: appState.books,
+                transactions: appState.transactions,
+                transactionTypes: appState.transactionTypes,
+                paymentModes: appState.paymentModes,
+                settings: appState.settings,
+                exportDate: new Date().toISOString(),
+                version: '2.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cashlytics_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Data exported successfully!');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            
+                            if (data.books && data.transactions) {
+                                if (confirm('This will replace all current data. Continue?')) {
+                                    appState.books = data.books || [];
+                                    appState.transactions = data.transactions || [];
+                                    appState.transactionTypes = data.transactionTypes || appState.transactionTypes;
+                                    appState.paymentModes = data.paymentModes || appState.paymentModes;
+                                    appState.settings = Object.assign(appState.settings, data.settings || {});
+                                    
+                                    saveAppData();
+                                    loadBooks();
+                                    loadTransactions();
+                                    loadSettings();
+                                    updateStats();
+                                    
+                                    alert('Data imported successfully!');
+                                }
+                            } else {
+                                alert('Invalid backup file format!');
+                            }
+                        } catch (error) {
+                            alert('Error importing data: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('This will delete ALL your data permanently. This cannot be undone!\n\nType "DELETE" to confirm:')) {
+                const confirmation = prompt('Type "DELETE" to confirm:');
+                if (confirmation === 'DELETE') {
+                    Object.values(STORAGE_KEYS).forEach(key => {
+                        localStorage.removeItem(key);
+                    });
+                    localStorage.removeItem('cashlytics_auto_backup');
+                    
+                    // Reset app state
+                    appState = {
+                        books: [],
+                        transactions: [],
+                        transactionTypes: [],
+                        paymentModes: [],
+                        settings: {
+                            currency: 'INR',
+                            currencySymbol: '₹',
+                            theme: 'light'
+                        },
+                        currentBook: null
+                    };
+                    
+                    initializeDefaultData();
+                    loadBooks();
+                    loadTransactions();
+                    loadSettings();
+                    updateStats();
+                    
+                    alert('All data cleared successfully!');
+                }
+            }
+        }
+
+        function checkAutoBackup() {
+            const lastBackup = localStorage.getItem(STORAGE_KEYS.lastBackup);
+            if (!lastBackup) return;
+            
+            const lastBackupDate = new Date(lastBackup);
+            const now = new Date();
+            const hoursSinceBackup = (now - lastBackupDate) / (1000 * 60 * 60);
+            
+            // Auto backup every 24 hours
+            if (hoursSinceBackup >= 24) {
+                createAutoBackup();
+            }
+        }
+
+        // PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button in settings
+            const installBtn = document.createElement('button');
+            installBtn.className = 'btn';
+            installBtn.innerHTML = '📱 Install as App';
+            installBtn.onclick = () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                    installBtn.remove();
+                });
+            };
+            
+            const settingsTab = document.getElementById('settings-tab');
+            if (settingsTab) {
+                settingsTab.appendChild(installBtn);
+            }
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
