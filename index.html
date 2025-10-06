@@ -1089,13 +1089,19 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
+            
             loadAppData();
             initializeDefaultData();
             updateNavigationUI();
             checkDataSync();
-            loadBooks();
-            loadTransactions();
-            updateStats();
+            
+            // Ensure books are loaded after a small delay to allow DOM to be fully ready
+            setTimeout(() => {
+                loadBooks();
+                loadTransactions();
+                updateStats();
+            }, 10);
             
             // Auto-backup every 24 hours
             checkAutoBackup();
@@ -1104,6 +1110,8 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(console.error);
             }
+            
+            console.log('App initialization complete');
         });
 
         // Enhanced storage functions with backup and versioning
@@ -1208,6 +1216,8 @@
 
         // Tab switching
         function showTab(tabName, addToHistory = true) {
+            console.log('Switching to tab:', tabName);
+            
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -1219,6 +1229,22 @@
             const tabButton = document.querySelector(`[onclick*="showTab('${tabName}')"]`);
             if (tabButton) {
                 tabButton.classList.add('active');
+            }
+            
+            // Refresh data for specific tabs
+            switch(tabName) {
+                case 'books':
+                    console.log('Refreshing books...');
+                    setTimeout(loadBooks, 10); // Small delay to ensure DOM is ready
+                    break;
+                case 'transactions':
+                    console.log('Refreshing transactions...');
+                    loadTransactions();
+                    break;
+                case 'reports':
+                    console.log('Refreshing reports...');
+                    updateStats();
+                    break;
             }
             
             // Manage navigation history
@@ -1323,7 +1349,15 @@
 
         // Load books
         function loadBooks() {
+            console.log('Loading books...', appState.books.length);
             const container = document.getElementById('books-list');
+            
+            if (!container) {
+                console.error('Books container not found! Retrying in 100ms...');
+                setTimeout(loadBooks, 100);
+                return;
+            }
+            
             container.innerHTML = '';
             
             if (appState.books.length === 0) {
@@ -1339,9 +1373,11 @@
                         </div>
                     </div>
                 `;
+                console.log('No books found, showing empty state');
                 return;
             }
             
+            console.log('Rendering', appState.books.length, 'books');
             appState.books.forEach(book => {
                 const bookEl = document.createElement('div');
                 bookEl.className = 'book-item';
@@ -1638,17 +1674,23 @@
         }
 
         function closeModal(modalId) {
+            isInternalNavigation = true;
             document.getElementById(modalId).classList.remove('active');
+            setTimeout(() => { isInternalNavigation = false; }, 100);
         }
 
         // Add functions
         function addBook(event) {
             event.preventDefault();
+            isInternalNavigation = true;
             
             const name = document.getElementById('bookName').value.trim();
             const description = document.getElementById('bookDescription').value.trim();
             
-            if (!name) return;
+            if (!name) {
+                isInternalNavigation = false;
+                return;
+            }
 
             const book = {
                 id: Date.now(),
@@ -1666,6 +1708,8 @@
             // Clear form
             document.getElementById('bookName').value = '';
             document.getElementById('bookDescription').value = '';
+            
+            setTimeout(() => { isInternalNavigation = false; }, 100);
         }
 
         function deleteBook(bookId) {
@@ -1705,6 +1749,7 @@
 
         function addTransaction(event) {
             event.preventDefault();
+            isInternalNavigation = true;
             
             const bookId = parseInt(document.getElementById('transactionBook').value);
             const type = document.getElementById('transactionType').value;
@@ -1713,7 +1758,10 @@
             const paymentMode = document.getElementById('transactionPaymentMode').value;
             const category = document.getElementById('transactionCategory').value;
             
-            if (!bookId || !amount || !description) return;
+            if (!bookId || !amount || !description) {
+                isInternalNavigation = false;
+                return;
+            }
 
             const transaction = {
                 id: Date.now(),
@@ -1747,6 +1795,8 @@
             // Clear form
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionDescription').value = '';
+            
+            setTimeout(() => { isInternalNavigation = false; }, 100);
         }
 
         function addTransactionType(event) {
@@ -2965,31 +3015,17 @@
 
         // Prevent accidental page closure/refresh
         let hasUnsavedChanges = false;
+        let isInternalNavigation = false;
         
-        // Mark as having unsaved changes when user adds data
-        const originalSaveAppData = saveAppData;
-        function saveAppData() {
-            hasUnsavedChanges = false;
-            return originalSaveAppData();
-        }
-        
-        // Override functions that modify data to set unsaved flag
-        const originalAddTransaction = addTransaction;
-        function addTransaction(event) {
-            hasUnsavedChanges = true;
-            return originalAddTransaction(event);
-        }
-        
-        const originalAddBook = addBook;
-        function addBook(event) {
-            hasUnsavedChanges = true;
-            return originalAddBook(event);
-        }
-        
-        // Show confirmation before leaving page
+        // Show confirmation before leaving page (but not for internal actions)
         window.addEventListener('beforeunload', function(e) {
-            // Always show confirmation for financial data protection
-            const confirmationMessage = 'Are you sure you want to leave? Your financial data is saved, but any unsaved changes will be lost.';
+            // Don't show warning for internal navigation or form submissions
+            if (isInternalNavigation) {
+                return;
+            }
+            
+            // Only show confirmation when actually leaving the app
+            const confirmationMessage = 'Are you sure you want to leave? Your financial data is saved, but you will leave the app.';
             
             // Standard way for most browsers
             e.preventDefault();
