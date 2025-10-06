@@ -516,6 +516,17 @@
             backdrop-filter: blur(10px);
         }
 
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
@@ -737,9 +748,69 @@
                 </div>
                 
                 <div class="card">
+                    <h4>App Installation</h4>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                        📱 Install Cashlytics as a native app on your device for better experience
+                    </p>
+                    
+                    <div id="installSection">
+                        <button id="installButton" class="btn" style="display: none; margin-bottom: 10px; background: linear-gradient(135deg, #4CAF50, #388e3c);">
+                            📱 Install App
+                        </button>
+                        
+                        <div id="installInstructions" style="font-size: 14px; color: #666;">
+                            <p><strong>📱 Mobile Installation:</strong></p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li><strong>Chrome/Edge:</strong> Menu → "Add to Home screen"</li>
+                                <li><strong>Safari (iOS):</strong> Share → "Add to Home Screen"</li>
+                                <li><strong>Firefox:</strong> Menu → "Install"</li>
+                            </ul>
+                            
+                            <p style="margin-top: 15px;"><strong>💻 Desktop Installation:</strong></p>
+                            <ul style="margin: 10px 0; padding-left: 20px;">
+                                <li><strong>Chrome/Edge:</strong> Address bar → Install icon</li>
+                                <li><strong>Or:</strong> Menu → "Install Cashlytics..."</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
                     <h4>Data Management</h4>
-                    <button class="btn btn-success" onclick="exportData()">📤 Export Data</button>
-                    <button class="btn btn-secondary" onclick="importData()">📥 Import Data</button>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                        💡 <strong>Cross-browser sync:</strong> Export your data to share between different browsers or devices.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button class="btn btn-success" onclick="exportData()" style="padding: 12px; font-size: 14px;">
+                            📤 Export Data
+                        </button>
+                        <button class="btn btn-secondary" onclick="importData()" style="padding: 12px; font-size: 14px;">
+                            📥 Import Data
+                        </button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button class="btn" onclick="saveToFile()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #2196F3, #1976D2);">
+                            💾 Save to File
+                        </button>
+                        <button class="btn" onclick="loadFromFile()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #FF9800, #F57C00);">
+                            📂 Load from File
+                        </button>
+                    </div>
+                    
+                    <div style="margin: 15px 0;">
+                        <h5 style="margin-bottom: 10px;">Auto-Sync Options</h5>
+                        <button class="btn" onclick="setupCloudSync()" style="padding: 10px; font-size: 14px; background: linear-gradient(135deg, #9C27B0, #7B1FA2); margin-bottom: 10px;">
+                            ☁️ Setup Cloud Sync (Google Drive)
+                        </button>
+                        <div style="font-size: 12px; color: #666;">
+                            Enable automatic backup to Google Drive for seamless cross-device access
+                        </div>
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+                    
                     <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
                 </div>
             </div>
@@ -941,6 +1012,7 @@
             loadAppData();
             initializeDefaultData();
             updateNavigationUI();
+            checkDataSync();
             loadBooks();
             loadTransactions();
             updateStats();
@@ -1179,6 +1251,12 @@
                     <div class="empty-state">
                         <p>No transaction books yet.</p>
                         <p>Create your first book to get started!</p>
+                        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196F3;">
+                            <p style="margin: 0; font-size: 14px; color: #1976d2;">
+                                <strong>💡 Switching browsers?</strong><br>
+                                Export your data from your main browser and import it here to sync your information across devices.
+                            </p>
+                        </div>
                     </div>
                 `;
                 return;
@@ -2050,7 +2128,116 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            alert('Data exported successfully!');
+            alert('✅ Data exported successfully!\n\n💡 Tip: Save this file to cloud storage (Google Drive, Dropbox, etc.) to access your data from any browser or device.');
+        }
+
+        function saveToFile() {
+            const exportData = {
+                books: appState.books,
+                transactions: appState.transactions,
+                transactionTypes: appState.transactionTypes,
+                paymentModes: appState.paymentModes,
+                settings: appState.settings,
+                exportDate: new Date().toISOString(),
+                version: '2.0'
+            };
+            
+            // Try to use File System Access API for better UX
+            if ('showSaveFilePicker' in window) {
+                saveToBrowserFile(exportData);
+            } else {
+                // Fallback to download
+                exportData();
+            }
+        }
+
+        async function saveToBrowserFile(data) {
+            try {
+                const fileHandle = await window.showSaveFilePicker({
+                    suggestedName: `cashlytics_data_${new Date().toISOString().split('T')[0]}.json`,
+                    types: [{
+                        description: 'Cashlytics data files',
+                        accept: { 'application/json': ['.json'] }
+                    }]
+                });
+                
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify(data, null, 2));
+                await writable.close();
+                
+                alert('✅ Data saved successfully!\n\n📱 You can now open this file from any browser to load your data.');
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error saving file:', error);
+                    exportData(); // Fallback to download
+                }
+            }
+        }
+
+        function loadFromFile() {
+            if ('showOpenFilePicker' in window) {
+                loadFromBrowserFile();
+            } else {
+                // Fallback to file input
+                importData();
+            }
+        }
+
+        async function loadFromBrowserFile() {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'Cashlytics data files',
+                        accept: { 'application/json': ['.json'] }
+                    }]
+                });
+                
+                const file = await fileHandle.getFile();
+                const contents = await file.text();
+                
+                try {
+                    const data = JSON.parse(contents);
+                    
+                    if (data.books && data.transactions) {
+                        if (confirm('🔄 This will replace all current data with the data from the file.\n\n⚠️ Make sure to export your current data first if you want to keep it.\n\nContinue?')) {
+                            importDataFromObject(data);
+                        }
+                    } else {
+                        alert('❌ Invalid file format! Please select a valid Cashlytics backup file.');
+                    }
+                } catch (error) {
+                    alert('❌ Error reading file! The file may be corrupted or in the wrong format.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error loading file:', error);
+                }
+            }
+        }
+
+        function importDataFromObject(data) {
+            appState.books = data.books || [];
+            appState.transactions = data.transactions || [];
+            appState.transactionTypes = data.transactionTypes || appState.transactionTypes;
+            appState.paymentModes = data.paymentModes || appState.paymentModes;
+            appState.settings = Object.assign(appState.settings, data.settings || {});
+            
+            saveAppData();
+            loadBooks();
+            loadTransactions();
+            loadSettings();
+            updateStats();
+            
+            alert('✅ Data imported successfully!\n\n🎉 Your data is now available in this browser.');
+        }
+
+        function setupCloudSync() {
+            alert('🚧 Cloud Sync Feature Coming Soon!\n\n' +
+                  '📋 For now, you can:\n' +
+                  '1. Export your data regularly\n' +
+                  '2. Save the backup file to Google Drive/Dropbox\n' +
+                  '3. Import the file on other devices\n\n' +
+                  '💡 Tip: Enable auto-sync with your cloud storage app to keep backups updated automatically!');
         }
 
         function importData() {
@@ -2066,26 +2253,14 @@
                             const data = JSON.parse(e.target.result);
                             
                             if (data.books && data.transactions) {
-                                if (confirm('This will replace all current data. Continue?')) {
-                                    appState.books = data.books || [];
-                                    appState.transactions = data.transactions || [];
-                                    appState.transactionTypes = data.transactionTypes || appState.transactionTypes;
-                                    appState.paymentModes = data.paymentModes || appState.paymentModes;
-                                    appState.settings = Object.assign(appState.settings, data.settings || {});
-                                    
-                                    saveAppData();
-                                    loadBooks();
-                                    loadTransactions();
-                                    loadSettings();
-                                    updateStats();
-                                    
-                                    alert('Data imported successfully!');
+                                if (confirm('🔄 This will replace all current data with the imported data.\n\n⚠️ Make sure to export your current data first if you want to keep it.\n\nContinue?')) {
+                                    importDataFromObject(data);
                                 }
                             } else {
-                                alert('Invalid backup file format!');
+                                alert('❌ Invalid backup file format! Please select a valid Cashlytics backup file.');
                             }
                         } catch (error) {
-                            alert('Error importing data: ' + error.message);
+                            alert('❌ Error importing data: ' + error.message + '\n\nPlease check if the file is a valid Cashlytics backup.');
                         }
                     };
                     reader.readAsText(file);
@@ -2128,6 +2303,70 @@
             }
         }
 
+        function checkDataSync() {
+            // Check if this is a new browser/device with no data
+            const hasData = appState.books.length > 0 || appState.transactions.length > 0;
+            const isFirstVisit = !localStorage.getItem('cashlytics_first_visit');
+            
+            if (!hasData && !isFirstVisit) {
+                // Show sync notification after a short delay
+                setTimeout(() => {
+                    showSyncNotification();
+                }, 2000);
+            }
+            
+            if (isFirstVisit) {
+                localStorage.setItem('cashlytics_first_visit', 'true');
+            }
+        }
+
+        function showSyncNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #2196F3, #1976D2);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(33, 150, 243, 0.4);
+                z-index: 3000;
+                max-width: 350px;
+                text-align: center;
+                animation: slideDown 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <div style="margin-bottom: 10px;">
+                    <strong>📱 New Browser Detected!</strong>
+                </div>
+                <div style="font-size: 14px; margin-bottom: 15px;">
+                    Import your data to sync across browsers and devices
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="importData(); this.parentElement.parentElement.parentElement.remove();" 
+                            style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        📥 Import Data
+                    </button>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove();" 
+                            style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        Later
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+
         function checkAutoBackup() {
             const lastBackup = localStorage.getItem(STORAGE_KEYS.lastBackup);
             if (!lastBackup) return;
@@ -2144,27 +2383,55 @@
 
         // PWA install prompt
         let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+        const installSection = document.getElementById('installSection');
+        
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             
-            // Show install button in settings
-            const installBtn = document.createElement('button');
-            installBtn.className = 'btn';
-            installBtn.innerHTML = '📱 Install as App';
-            installBtn.onclick = () => {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                    installBtn.remove();
-                });
-            };
-            
-            const settingsTab = document.getElementById('settings-tab');
-            if (settingsTab) {
-                settingsTab.appendChild(installBtn);
+            // Show install button
+            if (installButton) {
+                installButton.style.display = 'block';
+                installButton.onclick = async () => {
+                    try {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        
+                        if (outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                            installButton.style.display = 'none';
+                            showSuccess('App installation started!');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    } catch (error) {
+                        console.error('Install prompt failed:', error);
+                        showError('Installation failed. Please try from browser menu.');
+                    }
+                };
             }
         });
+        
+        // Check if app is already installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+            showSuccess('App installed successfully!');
+        });
+        
+        // Hide install button if already in standalone mode
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+            if (installSection) {
+                installSection.innerHTML = '<p style="color: #4CAF50; font-weight: bold;">✅ App is already installed!</p>';
+            }
+        }
 
         // Close modals when clicking outside
         document.addEventListener('click', function(e) {
