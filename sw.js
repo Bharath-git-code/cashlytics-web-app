@@ -1,9 +1,10 @@
-const CACHE_NAME = "cashlytics-v2.3";
+const CACHE_NAME = "cashlytics-v2.4";
 const urlsToCache = [
   "/cashlytics-web-app/",
   "/cashlytics-web-app/index.html",
   "/cashlytics-web-app/manifest.json",
   "https://cdn.jsdelivr.net/npm/chart.js",
+  "https://apis.google.com/js/api.js"
 ];
 
 // Install event - cache resources
@@ -33,19 +34,41 @@ self.addEventListener("fetch", (event) => {
         }
 
         // For navigation requests (like opening the PWA), always try index.html
-        if (event.request.mode === "navigate") {
+        if (event.request.mode === "navigate" || 
+            event.request.destination === "document" ||
+            event.request.headers.get('accept').includes('text/html')) {
+          
+          // Try to fetch the requested URL first
           return fetch(event.request).catch(() => {
-            return caches.match("/cashlytics-web-app/index.html");
+            // If that fails, serve index.html from cache
+            return caches.match("/cashlytics-web-app/index.html").then((cachedIndex) => {
+              if (cachedIndex) {
+                return cachedIndex;
+              }
+              // Final fallback - try to fetch index.html
+              return fetch("/cashlytics-web-app/index.html");
+            });
           });
         }
 
-        return fetch(event.request);
+        // For other requests, try network first
+        return fetch(event.request).then((response) => {
+          // Cache successful responses
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        });
       })
       .catch(() => {
-        // If both cache and network fail, return offline page
+        // If both cache and network fail, return offline page for documents
         if (
           event.request.destination === "document" ||
-          event.request.mode === "navigate"
+          event.request.mode === "navigate" ||
+          event.request.headers.get('accept').includes('text/html')
         ) {
           return caches.match("/cashlytics-web-app/index.html");
         }
