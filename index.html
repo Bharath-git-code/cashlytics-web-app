@@ -7,6 +7,7 @@
     <title>Cashlytics - Personal Finance Tracker</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%232196F3'/%3E%3Ctext x='50' y='60' font-family='Arial' font-size='40' fill='white' text-anchor='middle'%3E💰%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -311,6 +312,13 @@
             box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
         }
         
+        .form-group select:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #dee2e6;
+        }
+        
         .btn {
             background: linear-gradient(135deg, #2196F3, #1976D2);
             color: white;
@@ -412,6 +420,87 @@
             background: rgba(33, 150, 243, 0.1);
         }
         
+        .transaction-actions {
+            display: flex;
+            align-items: center;
+        }
+        
+        .transaction-actions button {
+            min-width: 100px;
+            white-space: nowrap;
+        }
+        
+        .filter-row {
+            margin-bottom: 10px;
+        }
+        
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .filter-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 10px;
+            user-select: none;
+        }
+        
+        .filter-header:hover {
+            background-color: rgba(33, 150, 243, 0.05);
+            border-radius: 8px;
+            margin: -5px;
+            padding: 5px 5px 15px 5px;
+        }
+        
+        .quick-filter-btn {
+            transition: all 0.2s ease !important;
+        }
+        
+        .quick-filter-btn:hover {
+            background-color: #2196F3 !important;
+            color: white !important;
+            border-color: #2196F3 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+        
+        .quick-filter-btn.active {
+            background-color: #2196F3 !important;
+            color: white !important;
+            border-color: #2196F3 !important;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+        
+        .chart-toggle-btn {
+            transition: all 0.3s ease !important;
+        }
+        
+        .chart-toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .chart-toggle-btn.active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            justify-content: space-between;
+        }
+        
+        .chart-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
         .back-btn {
             position: absolute;
             top: 20px;
@@ -472,8 +561,77 @@
                 <div id="transactions-header">
                     <h3>All Transactions</h3>
                 </div>
+                
+                <!-- Transaction Filters -->
+                <div class="card" id="transaction-filters">
+                    <!-- Quick Filter Shortcuts -->
+                    <div class="quick-filters" style="margin-bottom: 15px;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <span style="font-size: 14px; font-weight: 600; color: #666; margin-right: 5px;">Quick:</span>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('today')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">Today</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('week')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Week</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('month')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Month</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('year')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Year</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('all')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">All Time</button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-header" onclick="toggleFilters()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="margin: 0;">Advanced Filters</h4>
+                        <span id="filter-toggle-icon" style="font-size: 18px; transition: transform 0.3s ease;">▼</span>
+                    </div>
+                    <div id="filter-content" style="display: none;">
+                        <div class="filter-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 12px;">From Date</label>
+                                <input type="date" id="filterFromDate" style="padding: 8px; font-size: 14px;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 12px;">To Date</label>
+                                <input type="date" id="filterToDate" style="padding: 8px; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div class="filter-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 12px;">Type</label>
+                                <select id="filterType" style="padding: 8px; font-size: 14px;">
+                                    <option value="">All Types</option>
+                                    <option value="income">Cash In</option>
+                                    <option value="expense">Cash Out</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 12px;">Payment Mode</label>
+                                <select id="filterPaymentMode" style="padding: 8px; font-size: 14px;">
+                                    <option value="">All Modes</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="font-size: 12px;">Category</label>
+                                <select id="filterCategory" style="padding: 8px; font-size: 14px;">
+                                    <option value="">All Categories</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" onclick="applyFilters()" style="flex: 1; padding: 8px; font-size: 14px;">Apply Filters</button>
+                            <button class="btn btn-secondary" onclick="clearFilters()" style="flex: 1; padding: 8px; font-size: 14px;">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="transactions-list">
                     <!-- Transactions will be loaded here -->
+                </div>
+                
+                <!-- Cash In/Out Buttons (shown only when viewing transactions) -->
+                <div id="transaction-action-buttons" class="transaction-actions" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 1000;">
+                    <button class="btn btn-success" onclick="showAddTransactionModal('income')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);">
+                        💰 Cash In
+                    </button>
+                    <button class="btn btn-danger" onclick="showAddTransactionModal('expense')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);">
+                        💸 Cash Out
+                    </button>
                 </div>
             </div>
             
@@ -498,6 +656,34 @@
                         <div class="stat-label">Transactions</div>
                     </div>
                 </div>
+                
+                <!-- Category Analysis Chart -->
+                <div class="card" style="margin: 20px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h4 style="margin: 0;">Category Analysis</h4>
+                        <div class="chart-toggle" style="display: flex; gap: 10px;">
+                            <button id="incomeChartBtn" class="chart-toggle-btn active" onclick="toggleChartType('income')" 
+                                    style="padding: 8px 16px; border: 2px solid #4CAF50; background: #4CAF50; color: white; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
+                                💰 Income
+                            </button>
+                            <button id="expenseChartBtn" class="chart-toggle-btn" onclick="toggleChartType('expense')" 
+                                    style="padding: 8px 16px; border: 2px solid #f44336; background: transparent; color: #f44336; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
+                                💸 Expenses
+                            </button>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 300px; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="categoryChart" style="max-width: 300px; max-height: 300px;"></canvas>
+                        <div id="noDataMessage" style="display: none; text-align: center; color: #666;">
+                            <p>No data available for this category</p>
+                            <p style="font-size: 12px;">Add some transactions to see the breakdown</p>
+                        </div>
+                    </div>
+                    <div id="chartLegend" style="margin-top: 20px;">
+                        <!-- Legend will be populated here -->
+                    </div>
+                </div>
+                
                 <div id="reports-content">
                     <!-- Detailed reports will be loaded here -->
                 </div>
@@ -588,6 +774,9 @@
                     <select id="transactionBook" required>
                         <!-- Books will be populated here -->
                     </select>
+                    <small id="bookAutoSelectedNote" style="color: #666; font-size: 12px; display: none;">
+                        📌 Book auto-selected from your choice
+                    </small>
                 </div>
                 <div class="form-group">
                     <label>Type</label>
@@ -655,6 +844,60 @@
         </div>
     </div>
 
+    <!-- Edit Transaction Modal -->
+    <div id="editTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Transaction</h3>
+                <button class="close-btn" onclick="closeModal('editTransactionModal')">&times;</button>
+            </div>
+            <form onsubmit="updateTransaction(event)">
+                <input type="hidden" id="editTransactionId">
+                <div class="form-group">
+                    <label>Book</label>
+                    <select id="editTransactionBook" required>
+                        <!-- Books will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="editTransactionType" required>
+                        <option value="income">Cash In (Income)</option>
+                        <option value="expense">Cash Out (Expense)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="editTransactionAmount" required step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="editTransactionDescription" required placeholder="What was this for?">
+                </div>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="editTransactionPaymentMode" required>
+                        <!-- Payment modes will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="editTransactionCategory" required>
+                        <!-- Categories will be populated here -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="datetime-local" id="editTransactionDate" required>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn" style="flex: 1;">Update Transaction</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteTransaction()" style="flex: 1;">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Enhanced App State with better storage
         let appState = {
@@ -667,7 +910,9 @@
                 currencySymbol: '₹',
                 theme: 'light'
             },
-            currentBook: null
+            currentBook: null,
+            categoryChart: null,
+            currentChartType: 'income'
         };
 
         // Storage keys
@@ -807,12 +1052,25 @@
             document.getElementById(tabName + '-tab').classList.remove('hidden');
             event.target.classList.add('active');
             
+            // Show/hide transaction action buttons and FAB
+            const transactionButtons = document.getElementById('transaction-action-buttons');
+            const fab = document.querySelector('.fab');
+            
+            if (tabName === 'transactions') {
+                transactionButtons.style.display = 'flex';
+                fab.style.display = 'none';
+            } else {
+                transactionButtons.style.display = 'none';
+                fab.style.display = 'block';
+            }
+            
             // Load tab content
             switch(tabName) {
                 case 'books':
                     loadBooks();
                     break;
                 case 'transactions':
+                    loadTransactionFilters();
                     loadTransactions();
                     break;
                 case 'reports':
@@ -859,6 +1117,29 @@
             });
         }
 
+        // Load transaction filters
+        function loadTransactionFilters() {
+            // Populate payment mode filter
+            const paymentModeFilter = document.getElementById('filterPaymentMode');
+            paymentModeFilter.innerHTML = '<option value="">All Modes</option>';
+            appState.paymentModes.forEach(mode => {
+                const option = document.createElement('option');
+                option.value = mode;
+                option.textContent = mode;
+                paymentModeFilter.appendChild(option);
+            });
+
+            // Populate category filter
+            const categoryFilter = document.getElementById('filterCategory');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+            appState.transactionTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                categoryFilter.appendChild(option);
+            });
+        }
+
         // Load transactions
         function loadTransactions() {
             const container = document.getElementById('transactions-list');
@@ -873,13 +1154,16 @@
                 header.innerHTML = '<h3>All Transactions</h3>';
             }
             
+            // Apply filters
+            transactionsToShow = applyTransactionFilters(transactionsToShow);
+            
             container.innerHTML = '';
             
             if (transactionsToShow.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>No transactions yet.</p>
-                        <p>Tap the + button to add your first transaction!</p>
+                        <p>No transactions found.</p>
+                        <p>Use the Cash In/Out buttons below to add transactions!</p>
                     </div>
                 `;
                 return;
@@ -891,6 +1175,8 @@
             transactionsToShow.forEach(transaction => {
                 const transEl = document.createElement('div');
                 transEl.className = `transaction-item ${transaction.type}`;
+                transEl.style.cursor = 'pointer';
+                transEl.title = 'Click to edit transaction';
                 
                 const book = appState.books.find(b => b.id === transaction.bookId);
                 const bookName = book ? book.name : 'Unknown Book';
@@ -910,8 +1196,12 @@
                         <span>🏷️ ${transaction.category || 'No category'}</span>
                         <span>💳 ${transaction.paymentMode || 'No payment mode'}</span>
                     </div>
+                    <div style="font-size: 11px; color: #999; margin-top: 5px; text-align: right;">
+                        ✏️ Click to edit
+                    </div>
                 `;
                 
+                transEl.onclick = () => showEditTransactionModal(transaction);
                 container.appendChild(transEl);
             });
         }
@@ -934,6 +1224,9 @@
             document.getElementById('netBalance').textContent = formatCurrency(netBalance);
             document.getElementById('netBalance').className = `stat-value ${netBalance >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('totalTransactions').textContent = totalTransactions;
+
+            // Load category chart
+            loadCategoryChart(appState.currentChartType);
 
             // Detailed reports
             const reportsContent = document.getElementById('reports-content');
@@ -1008,19 +1301,38 @@
             document.getElementById('addBookModal').classList.add('active');
         }
 
-        function showAddTransactionModal() {
+        function showAddTransactionModal(presetType = null) {
             // Populate book select
             const bookSelect = document.getElementById('transactionBook');
+            const autoSelectedNote = document.getElementById('bookAutoSelectedNote');
             bookSelect.innerHTML = '';
-            appState.books.forEach(book => {
+            
+            // If a current book is selected, only show that book and disable the dropdown
+            if (appState.currentBook) {
                 const option = document.createElement('option');
-                option.value = book.id;
-                option.textContent = book.name;
-                if (appState.currentBook && appState.currentBook.id === book.id) {
-                    option.selected = true;
-                }
+                option.value = appState.currentBook.id;
+                option.textContent = appState.currentBook.name;
+                option.selected = true;
                 bookSelect.appendChild(option);
-            });
+                bookSelect.disabled = true; // Disable dropdown when book is auto-selected
+                autoSelectedNote.style.display = 'block'; // Show auto-selection note
+            } else {
+                // Show all books if no specific book is selected
+                appState.books.forEach(book => {
+                    const option = document.createElement('option');
+                    option.value = book.id;
+                    option.textContent = book.name;
+                    bookSelect.appendChild(option);
+                });
+                bookSelect.disabled = false;
+                autoSelectedNote.style.display = 'none'; // Hide auto-selection note
+            }
+
+            // Set transaction type if preset
+            const typeSelect = document.getElementById('transactionType');
+            if (presetType) {
+                typeSelect.value = presetType;
+            }
 
             // Populate payment modes
             const paymentModeSelect = document.getElementById('transactionPaymentMode');
@@ -1158,6 +1470,400 @@
             document.getElementById('paymentModeName').value = '';
         }
 
+        // Filter functions
+        function setQuickFilter(period) {
+            const today = new Date();
+            let fromDate = '';
+            let toDate = '';
+            
+            // Clear all other filters first
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterPaymentMode').value = '';
+            document.getElementById('filterCategory').value = '';
+            
+            // Remove active class from all quick filter buttons
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            switch(period) {
+                case 'today':
+                    fromDate = today.toISOString().split('T')[0];
+                    toDate = today.toISOString().split('T')[0];
+                    break;
+                    
+                case 'week':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+                    fromDate = startOfWeek.toISOString().split('T')[0];
+                    toDate = endOfWeek.toISOString().split('T')[0];
+                    break;
+                    
+                case 'month':
+                    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    fromDate = startOfMonth.toISOString().split('T')[0];
+                    toDate = endOfMonth.toISOString().split('T')[0];
+                    break;
+                    
+                case 'year':
+                    const startOfYear = new Date(today.getFullYear(), 0, 1);
+                    const endOfYear = new Date(today.getFullYear(), 11, 31);
+                    fromDate = startOfYear.toISOString().split('T')[0];
+                    toDate = endOfYear.toISOString().split('T')[0];
+                    break;
+                    
+                case 'all':
+                    fromDate = '';
+                    toDate = '';
+                    break;
+            }
+            
+            // Set the date filters
+            document.getElementById('filterFromDate').value = fromDate;
+            document.getElementById('filterToDate').value = toDate;
+            
+            // Apply the filters
+            loadTransactions();
+        }
+
+        function toggleFilters() {
+            const filterContent = document.getElementById('filter-content');
+            const toggleIcon = document.getElementById('filter-toggle-icon');
+            
+            if (filterContent.style.display === 'none') {
+                filterContent.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                toggleIcon.style.transform = 'rotate(180deg)';
+            } else {
+                filterContent.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function applyTransactionFilters(transactions) {
+            const fromDate = document.getElementById('filterFromDate').value;
+            const toDate = document.getElementById('filterToDate').value;
+            const type = document.getElementById('filterType').value;
+            const paymentMode = document.getElementById('filterPaymentMode').value;
+            const category = document.getElementById('filterCategory').value;
+
+            return transactions.filter(transaction => {
+                // Date filter
+                if (fromDate && new Date(transaction.date) < new Date(fromDate)) return false;
+                if (toDate && new Date(transaction.date) > new Date(toDate + 'T23:59:59')) return false;
+                
+                // Type filter
+                if (type && transaction.type !== type) return false;
+                
+                // Payment mode filter
+                if (paymentMode && transaction.paymentMode !== paymentMode) return false;
+                
+                // Category filter
+                if (category && transaction.category !== category) return false;
+                
+                return true;
+            });
+        }
+
+        function applyFilters() {
+            loadTransactions();
+        }
+
+        function clearFilters() {
+            document.getElementById('filterFromDate').value = '';
+            document.getElementById('filterToDate').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterPaymentMode').value = '';
+            document.getElementById('filterCategory').value = '';
+            
+            // Remove active class from quick filter buttons
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            loadTransactions();
+        }
+
+        // Edit transaction functions
+        function toggleChartType(type) {
+            appState.currentChartType = type;
+            
+            // Update button states
+            document.getElementById('incomeChartBtn').classList.toggle('active', type === 'income');
+            document.getElementById('expenseChartBtn').classList.toggle('active', type === 'expense');
+            
+            // Update button styles
+            if (type === 'income') {
+                document.getElementById('incomeChartBtn').style.background = '#4CAF50';
+                document.getElementById('incomeChartBtn').style.color = 'white';
+                document.getElementById('expenseChartBtn').style.background = 'transparent';
+                document.getElementById('expenseChartBtn').style.color = '#f44336';
+            } else {
+                document.getElementById('expenseChartBtn').style.background = '#f44336';
+                document.getElementById('expenseChartBtn').style.color = 'white';
+                document.getElementById('incomeChartBtn').style.background = 'transparent';
+                document.getElementById('incomeChartBtn').style.color = '#4CAF50';
+            }
+            
+            loadCategoryChart(type);
+        }
+
+        function loadCategoryChart(type) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const chartCanvas = document.getElementById('categoryChart');
+            
+            // Get transactions by type
+            const transactions = appState.transactions.filter(t => t.type === type);
+            
+            if (transactions.length === 0) {
+                if (appState.categoryChart) {
+                    appState.categoryChart.destroy();
+                }
+                chartCanvas.style.display = 'none';
+                noDataMessage.style.display = 'block';
+                document.getElementById('chartLegend').innerHTML = '';
+                return;
+            }
+            
+            chartCanvas.style.display = 'block';
+            noDataMessage.style.display = 'none';
+            
+            // Calculate category totals
+            const categoryTotals = {};
+            transactions.forEach(t => {
+                const category = t.category || 'Uncategorized';
+                categoryTotals[category] = (categoryTotals[category] || 0) + t.amount;
+            });
+            
+            // Prepare chart data
+            const labels = Object.keys(categoryTotals);
+            const data = Object.values(categoryTotals);
+            const total = data.reduce((sum, amount) => sum + amount, 0);
+            
+            // Generate colors
+            const colors = generateChartColors(labels.length);
+            
+            // Destroy existing chart
+            if (appState.categoryChart) {
+                appState.categoryChart.destroy();
+            }
+            
+            // Create new chart
+            appState.categoryChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false // We'll create custom legend
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${formatCurrency(context.parsed)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Create custom legend
+            createChartLegend(labels, data, colors, total);
+        }
+
+        function generateChartColors(count) {
+            const baseColors = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384',
+                '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+            ];
+            
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+
+        function createChartLegend(labels, data, colors, total) {
+            const legendContainer = document.getElementById('chartLegend');
+            let legendHtml = '';
+            
+            labels.forEach((label, index) => {
+                const percentage = ((data[index] / total) * 100).toFixed(1);
+                legendHtml += `
+                    <div class="chart-legend-item">
+                        <div style="display: flex; align-items: center;">
+                            <div class="chart-legend-color" style="background-color: ${colors[index]};"></div>
+                            <span style="font-weight: 500;">${label}</span>
+                        </div>
+                        <div>
+                            <span style="font-weight: bold;">${formatCurrency(data[index])}</span>
+                            <span style="color: #666; margin-left: 8px;">(${percentage}%)</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            legendContainer.innerHTML = legendHtml;
+        }
+
+        function showEditTransactionModal(transaction) {
+            // Store transaction ID
+            document.getElementById('editTransactionId').value = transaction.id;
+            
+            // Populate book select
+            const bookSelect = document.getElementById('editTransactionBook');
+            bookSelect.innerHTML = '';
+            appState.books.forEach(book => {
+                const option = document.createElement('option');
+                option.value = book.id;
+                option.textContent = book.name;
+                if (book.id === transaction.bookId) option.selected = true;
+                bookSelect.appendChild(option);
+            });
+
+            // Populate payment modes
+            const paymentModeSelect = document.getElementById('editTransactionPaymentMode');
+            paymentModeSelect.innerHTML = '';
+            appState.paymentModes.forEach(mode => {
+                const option = document.createElement('option');
+                option.value = mode;
+                option.textContent = mode;
+                if (mode === transaction.paymentMode) option.selected = true;
+                paymentModeSelect.appendChild(option);
+            });
+
+            // Populate categories
+            const categorySelect = document.getElementById('editTransactionCategory');
+            categorySelect.innerHTML = '';
+            appState.transactionTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (type === transaction.category) option.selected = true;
+                categorySelect.appendChild(option);
+            });
+
+            // Fill form fields
+            document.getElementById('editTransactionType').value = transaction.type;
+            document.getElementById('editTransactionAmount').value = transaction.amount;
+            document.getElementById('editTransactionDescription').value = transaction.description;
+            
+            // Format date for datetime-local input
+            const date = new Date(transaction.date);
+            const formattedDate = date.getFullYear() + '-' + 
+                String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(date.getDate()).padStart(2, '0') + 'T' + 
+                String(date.getHours()).padStart(2, '0') + ':' + 
+                String(date.getMinutes()).padStart(2, '0');
+            document.getElementById('editTransactionDate').value = formattedDate;
+
+            document.getElementById('editTransactionModal').classList.add('active');
+        }
+
+        function updateTransaction(event) {
+            event.preventDefault();
+            
+            const transactionId = parseInt(document.getElementById('editTransactionId').value);
+            const oldTransaction = appState.transactions.find(t => t.id === transactionId);
+            const oldBook = appState.books.find(b => b.id === oldTransaction.bookId);
+            
+            const bookId = parseInt(document.getElementById('editTransactionBook').value);
+            const type = document.getElementById('editTransactionType').value;
+            const amount = parseFloat(document.getElementById('editTransactionAmount').value);
+            const description = document.getElementById('editTransactionDescription').value.trim();
+            const paymentMode = document.getElementById('editTransactionPaymentMode').value;
+            const category = document.getElementById('editTransactionCategory').value;
+            const date = document.getElementById('editTransactionDate').value;
+            
+            if (!bookId || !amount || !description) return;
+
+            // Revert old transaction's balance effect
+            if (oldBook) {
+                if (oldTransaction.type === 'income') {
+                    oldBook.balance -= oldTransaction.amount;
+                } else {
+                    oldBook.balance += oldTransaction.amount;
+                }
+            }
+
+            // Update transaction
+            const transactionIndex = appState.transactions.findIndex(t => t.id === transactionId);
+            appState.transactions[transactionIndex] = {
+                ...oldTransaction,
+                bookId: bookId,
+                type: type,
+                amount: amount,
+                description: description,
+                paymentMode: paymentMode,
+                category: category,
+                date: new Date(date).toISOString()
+            };
+
+            // Apply new transaction's balance effect
+            const newBook = appState.books.find(b => b.id === bookId);
+            if (newBook) {
+                if (type === 'income') {
+                    newBook.balance += amount;
+                } else {
+                    newBook.balance -= amount;
+                }
+            }
+
+            saveAppData();
+            loadBooks();
+            loadTransactions();
+            updateStats();
+            closeModal('editTransactionModal');
+        }
+
+        function deleteTransaction() {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                const transactionId = parseInt(document.getElementById('editTransactionId').value);
+                const transaction = appState.transactions.find(t => t.id === transactionId);
+                const book = appState.books.find(b => b.id === transaction.bookId);
+                
+                // Revert balance effect
+                if (book) {
+                    if (transaction.type === 'income') {
+                        book.balance -= transaction.amount;
+                    } else {
+                        book.balance += transaction.amount;
+                    }
+                }
+                
+                // Remove transaction
+                appState.transactions = appState.transactions.filter(t => t.id !== transactionId);
+                
+                saveAppData();
+                loadBooks();
+                loadTransactions();
+                updateStats();
+                closeModal('editTransactionModal');
+            }
+        }
+
         // Remove functions
         function removeTransactionType(typeName) {
             if (confirm(`Remove transaction type "${typeName}"?`)) {
@@ -1178,7 +1884,20 @@
         // Utility functions
         function selectBook(book) {
             appState.currentBook = book;
-            showTab('transactions');
+            
+            // Switch to transactions tab and show action buttons
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById('transactions-tab').classList.remove('hidden');
+            document.querySelector('[onclick="showTab(\'transactions\')"]').classList.add('active');
+            
+            // Show transaction action buttons and hide FAB
+            document.getElementById('transaction-action-buttons').style.display = 'flex';
+            document.querySelector('.fab').style.display = 'none';
+            
+            loadTransactionFilters();
+            loadTransactions();
         }
 
         function setCurrency(code, symbol) {
