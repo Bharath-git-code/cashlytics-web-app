@@ -637,7 +637,16 @@
             
             <!-- Reports Tab -->
             <div id="reports-tab" class="tab-content hidden">
-                <h3>Financial Summary</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Financial Summary</h3>
+                    <div class="form-group" style="margin: 0; min-width: 200px;">
+                        <select id="reportBookSelector" onchange="loadReports()" style="padding: 8px; font-size: 14px; width: 100%;">
+                            <option value="">All Books</option>
+                            <!-- Books will be populated here -->
+                        </select>
+                    </div>
+                </div>
+                
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value positive" id="totalIncome">₹0</div>
@@ -912,7 +921,9 @@
             },
             currentBook: null,
             categoryChart: null,
-            currentChartType: 'income'
+            currentChartType: 'income',
+            navigationHistory: ['books'], // Track navigation history
+            currentTab: 'books'
         };
 
         // Storage keys
@@ -929,6 +940,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadAppData();
             initializeDefaultData();
+            updateNavigationUI();
             loadBooks();
             loadTransactions();
             updateStats();
@@ -1043,14 +1055,29 @@
         }
 
         // Tab switching
-        function showTab(tabName) {
+        function showTab(tabName, addToHistory = true) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.remove('hidden');
-            event.target.classList.add('active');
+            
+            // Update active tab in tab bar
+            const tabButton = document.querySelector(`[onclick*="showTab('${tabName}')"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+            
+            // Manage navigation history
+            if (addToHistory) {
+                // Don't add duplicate consecutive entries
+                if (appState.navigationHistory[appState.navigationHistory.length - 1] !== tabName) {
+                    appState.navigationHistory.push(tabName);
+                }
+            }
+            appState.currentTab = tabName;
+            updateNavigationUI();
             
             // Show/hide transaction action buttons and FAB
             const transactionButtons = document.getElementById('transaction-action-buttons');
@@ -1074,12 +1101,72 @@
                     loadTransactions();
                     break;
                 case 'reports':
+                    loadReportBookSelector();
                     loadReports();
                     break;
                 case 'settings':
                     loadSettings();
                     break;
             }
+        }
+
+        // Navigation functions
+        function updateNavigationUI() {
+            const backBtn = document.getElementById('backBtn');
+            const headerTitle = document.getElementById('headerTitle');
+            const headerSubtitle = document.getElementById('headerSubtitle');
+            
+            // Show back button if there's navigation history (more than just current page)
+            if (appState.navigationHistory.length > 1) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
+            
+            // Update header based on current context
+            if (appState.currentBook && appState.currentTab === 'transactions') {
+                headerTitle.textContent = appState.currentBook.name;
+                headerSubtitle.textContent = 'Transaction Book';
+            } else {
+                headerTitle.textContent = 'Cashlytics';
+                headerSubtitle.textContent = 'Personal Finance Tracker';
+            }
+        }
+
+        function goBack() {
+            if (appState.navigationHistory.length > 1) {
+                // Remove current page from history
+                appState.navigationHistory.pop();
+                
+                // Get previous page
+                const previousTab = appState.navigationHistory[appState.navigationHistory.length - 1];
+                
+                // If going back from transactions to books, clear current book
+                if (appState.currentTab === 'transactions' && previousTab === 'books') {
+                    appState.currentBook = null;
+                }
+                
+                // Navigate to previous tab without adding to history
+                showTab(previousTab, false);
+            }
+        }
+
+        function loadReportBookSelector() {
+            const selector = document.getElementById('reportBookSelector');
+            selector.innerHTML = '<option value="">All Books</option>';
+            
+            appState.books.forEach(book => {
+                const option = document.createElement('option');
+                option.value = book.id;
+                option.textContent = book.name;
+                
+                // Auto-select current book if coming from transactions
+                if (appState.currentBook && appState.currentBook.id === book.id) {
+                    option.selected = true;
+                }
+                
+                selector.appendChild(option);
+            });
         }
 
         // Load books
@@ -1208,16 +1295,25 @@
 
         // Load reports/statistics
         function loadReports() {
-            const totalIncome = appState.transactions
+            // Get selected book from dropdown
+            const selectedBookId = document.getElementById('reportBookSelector')?.value;
+            let transactionsToAnalyze = appState.transactions;
+            
+            // Filter transactions by selected book
+            if (selectedBookId) {
+                transactionsToAnalyze = appState.transactions.filter(t => t.bookId === parseInt(selectedBookId));
+            }
+            
+            const totalIncome = transactionsToAnalyze
                 .filter(t => t.type === 'income')
                 .reduce((sum, t) => sum + t.amount, 0);
             
-            const totalExpenses = appState.transactions
+            const totalExpenses = transactionsToAnalyze
                 .filter(t => t.type === 'expense')
                 .reduce((sum, t) => sum + t.amount, 0);
             
             const netBalance = totalIncome - totalExpenses;
-            const totalTransactions = appState.transactions.length;
+            const totalTransactions = transactionsToAnalyze.length;
 
             document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
             document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
@@ -1225,15 +1321,15 @@
             document.getElementById('netBalance').className = `stat-value ${netBalance >= 0 ? 'positive' : 'negative'}`;
             document.getElementById('totalTransactions').textContent = totalTransactions;
 
-            // Load category chart
-            loadCategoryChart(appState.currentChartType);
+            // Load category chart with filtered transactions
+            loadCategoryChart(appState.currentChartType, transactionsToAnalyze);
 
             // Detailed reports
             const reportsContent = document.getElementById('reports-content');
             
             // Monthly breakdown
             const monthlyData = {};
-            appState.transactions.forEach(t => {
+            transactionsToAnalyze.forEach(t => {
                 const month = new Date(t.date).toISOString().substring(0, 7);
                 if (!monthlyData[month]) {
                     monthlyData[month] = { income: 0, expenses: 0 };
@@ -1246,17 +1342,26 @@
                 }
             });
 
-            let monthlyHtml = '<div class="card"><h4>Monthly Summary</h4>';
-            Object.keys(monthlyData).sort().reverse().slice(0, 6).forEach(month => {
-                const data = monthlyData[month];
-                const net = data.income - data.expenses;
-                monthlyHtml += `
-                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
-                        <span>${new Date(month + '-01').toLocaleDateString('en-US', {year: 'numeric', month: 'long'})}</span>
-                        <span class="${net >= 0 ? 'positive' : 'negative'}">${formatCurrency(net)}</span>
-                    </div>
-                `;
-            });
+            const selectedBook = selectedBookId ? appState.books.find(b => b.id === parseInt(selectedBookId)) : null;
+            const reportTitle = selectedBook ? `Monthly Summary - ${selectedBook.name}` : 'Monthly Summary - All Books';
+
+            let monthlyHtml = `<div class="card"><h4>${reportTitle}</h4>`;
+            const monthEntries = Object.keys(monthlyData).sort().reverse().slice(0, 6);
+            
+            if (monthEntries.length === 0) {
+                monthlyHtml += '<p style="text-align: center; color: #666; padding: 20px;">No transaction data available for the selected period.</p>';
+            } else {
+                monthEntries.forEach(month => {
+                    const data = monthlyData[month];
+                    const net = data.income - data.expenses;
+                    monthlyHtml += `
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
+                            <span>${new Date(month + '-01').toLocaleDateString('en-US', {year: 'numeric', month: 'long'})}</span>
+                            <span class="${net >= 0 ? 'positive' : 'negative'}">${formatCurrency(net)}</span>
+                        </div>
+                    `;
+                });
+            }
             monthlyHtml += '</div>';
 
             reportsContent.innerHTML = monthlyHtml;
@@ -1612,16 +1717,27 @@
                 document.getElementById('incomeChartBtn').style.color = '#4CAF50';
             }
             
-            loadCategoryChart(type);
+            // Get filtered transactions based on selected book
+            const selectedBookId = document.getElementById('reportBookSelector')?.value;
+            let transactionsToAnalyze = appState.transactions;
+            
+            if (selectedBookId) {
+                transactionsToAnalyze = appState.transactions.filter(t => t.bookId === parseInt(selectedBookId));
+            }
+            
+            loadCategoryChart(type, transactionsToAnalyze);
         }
 
-        function loadCategoryChart(type) {
+        function loadCategoryChart(type, transactionsToUse = null) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             const noDataMessage = document.getElementById('noDataMessage');
             const chartCanvas = document.getElementById('categoryChart');
             
+            // Use provided transactions or all transactions
+            const allTransactions = transactionsToUse || appState.transactions;
+            
             // Get transactions by type
-            const transactions = appState.transactions.filter(t => t.type === type);
+            const transactions = allTransactions.filter(t => t.type === type);
             
             if (transactions.length === 0) {
                 if (appState.categoryChart) {
@@ -1885,19 +2001,8 @@
         function selectBook(book) {
             appState.currentBook = book;
             
-            // Switch to transactions tab and show action buttons
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            
-            document.getElementById('transactions-tab').classList.remove('hidden');
-            document.querySelector('[onclick="showTab(\'transactions\')"]').classList.add('active');
-            
-            // Show transaction action buttons and hide FAB
-            document.getElementById('transaction-action-buttons').style.display = 'flex';
-            document.querySelector('.fab').style.display = 'none';
-            
-            loadTransactionFilters();
-            loadTransactions();
+            // Navigate to transactions tab
+            showTab('transactions');
         }
 
         function setCurrency(code, symbol) {
