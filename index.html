@@ -162,6 +162,21 @@
         .balance.neutral {
             color: #666;
         }
+
+        .delete-btn {
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+        
+        .delete-btn:hover {
+            opacity: 1;
+            background: #cc0000 !important;
+            transform: scale(1.1);
+        }
+        
+        .book-item:hover .delete-btn {
+            opacity: 1;
+        }
         
         .transaction-item {
             background: white;
@@ -1269,12 +1284,21 @@
                 const balanceClass = book.balance > 0 ? 'positive' : book.balance < 0 ? 'negative' : 'neutral';
                 
                 bookEl.innerHTML = `
-                    <h3>${book.name}</h3>
-                    <div class="description">${book.description || 'No description'}</div>
-                    <div class="balance ${balanceClass}">
-                        ${formatCurrency(book.balance)}
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <h3>${book.name}</h3>
+                            <div class="description">${book.description || 'No description'}</div>
+                            <div class="balance ${balanceClass}">
+                                ${formatCurrency(book.balance)}
+                            </div>
+                            <small>Created: ${new Date(book.createdAt).toLocaleDateString()}</small>
+                        </div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteBook('${book.id}')" 
+                                style="background: #ff4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; margin-left: 10px; flex-shrink: 0;"
+                                title="Delete Book">
+                            🗑️
+                        </button>
                     </div>
-                    <small>Created: ${new Date(book.createdAt).toLocaleDateString()}</small>
                 `;
                 
                 bookEl.onclick = () => selectBook(book);
@@ -1577,6 +1601,41 @@
             // Clear form
             document.getElementById('bookName').value = '';
             document.getElementById('bookDescription').value = '';
+        }
+
+        function deleteBook(bookId) {
+            const book = appState.books.find(b => b.id == bookId);
+            if (!book) return;
+            
+            // Count transactions for this book
+            const transactionCount = appState.transactions.filter(t => t.bookId == bookId).length;
+            
+            let confirmMessage = `Are you sure you want to delete the book "${book.name}"?`;
+            if (transactionCount > 0) {
+                confirmMessage += `\n\nThis will also delete ${transactionCount} transaction(s) associated with this book.`;
+            }
+            confirmMessage += "\n\nThis action cannot be undone.";
+            
+            if (confirm(confirmMessage)) {
+                // Remove the book
+                appState.books = appState.books.filter(b => b.id != bookId);
+                
+                // Remove all transactions for this book
+                appState.transactions = appState.transactions.filter(t => t.bookId != bookId);
+                
+                // If the current selected book is being deleted, clear selection
+                if (appState.currentBook && appState.currentBook.id == bookId) {
+                    appState.currentBook = null;
+                    updateTransactionModal();
+                }
+                
+                saveAppData();
+                loadBooks();
+                loadTransactions();
+                updateStats();
+                
+                showSuccess(`Book "${book.name}" and its transactions have been deleted.`);
+            }
         }
 
         function addTransaction(event) {
@@ -2448,6 +2507,57 @@
                 });
             }
         });
+
+        // Prevent accidental page closure/refresh
+        let hasUnsavedChanges = false;
+        
+        // Mark as having unsaved changes when user adds data
+        const originalSaveAppData = saveAppData;
+        function saveAppData() {
+            hasUnsavedChanges = false;
+            return originalSaveAppData();
+        }
+        
+        // Override functions that modify data to set unsaved flag
+        const originalAddTransaction = addTransaction;
+        function addTransaction(event) {
+            hasUnsavedChanges = true;
+            return originalAddTransaction(event);
+        }
+        
+        const originalAddBook = addBook;
+        function addBook(event) {
+            hasUnsavedChanges = true;
+            return originalAddBook(event);
+        }
+        
+        // Show confirmation before leaving page
+        window.addEventListener('beforeunload', function(e) {
+            // Always show confirmation for financial data protection
+            const confirmationMessage = 'Are you sure you want to leave? Your financial data is saved, but any unsaved changes will be lost.';
+            
+            // Standard way for most browsers
+            e.preventDefault();
+            e.returnValue = confirmationMessage;
+            
+            // For older browsers
+            return confirmationMessage;
+        });
+        
+        // Handle browser back button specifically
+        window.addEventListener('popstate', function(e) {
+            if (confirm('Are you sure you want to go back? Your data is saved but you will leave the app.')) {
+                // Allow navigation
+                return true;
+            } else {
+                // Prevent navigation by pushing current state again
+                history.pushState(null, null, location.href);
+                return false;
+            }
+        });
+        
+        // Push initial state to enable back button handling
+        history.pushState(null, null, location.href);
     </script>
 </body>
 </html>
