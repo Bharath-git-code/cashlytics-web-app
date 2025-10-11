@@ -435,6 +435,41 @@
             background: rgba(33, 150, 243, 0.1);
         }
         
+        .language-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .language-option:hover {
+            border-color: #2196F3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+        
+        .language-option.selected {
+            border-color: #2196F3;
+            background: rgba(33, 150, 243, 0.1);
+            font-weight: 600;
+        }
+        
+        .language-flag {
+            font-size: 18px;
+            margin-right: 5px;
+        }
+        
         .transaction-actions {
             display: flex;
             align-items: center;
@@ -562,15 +597,15 @@
         <div class="header">
             <button class="back-btn hidden" id="backBtn" onclick="goBack()">←</button>
             <div class="logo">💰</div>
-            <h1 id="headerTitle">Cashlytics</h1>
+            <h1 id="headerTitle" data-translate="app_title">Cashlytics</h1>
             <p id="headerSubtitle">Personal Finance Tracker</p>
         </div>
         
         <div class="tab-bar" id="tabBar">
-            <button class="tab active" onclick="showTab('books')">📚 Books</button>
-            <button class="tab" onclick="showTab('transactions')">💳 Transactions</button>
-            <button class="tab" onclick="showTab('reports')">📊 Reports</button>
-            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
+            <button class="tab active" onclick="showTab('books')" data-translate="tab_books">📚 Books</button>
+            <button class="tab" onclick="showTab('transactions')" data-translate="tab_transactions">💳 Transactions</button>
+            <button class="tab" onclick="showTab('reports')" data-translate="tab_reports">📊 Reports</button>
+            <button class="tab" onclick="showTab('settings')" data-translate="tab_settings">⚙️ Settings</button>
         </div>
         
         <div class="content">
@@ -579,7 +614,7 @@
                 <div id="books-list">
                     <!-- Books will be loaded here -->
                 </div>
-                <button class="btn" onclick="showAddBookModal()">+ Add New Transaction Book</button>
+                <button class="btn" onclick="showAddBookModal()" data-translate="addNewBookBtn">+ Add New Transaction Book</button>
             </div>
             
             <!-- Transactions Tab -->
@@ -593,43 +628,43 @@
                     <!-- Quick Filter Shortcuts -->
                     <div class="quick-filters" style="margin-bottom: 15px;">
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                            <span style="font-size: 14px; font-weight: 600; color: #666; margin-right: 5px;">Quick:</span>
-                            <button class="quick-filter-btn" onclick="setQuickFilter('today')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">Today</button>
-                            <button class="quick-filter-btn" onclick="setQuickFilter('week')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Week</button>
-                            <button class="quick-filter-btn" onclick="setQuickFilter('month')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Month</button>
-                            <button class="quick-filter-btn" onclick="setQuickFilter('year')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">This Year</button>
-                            <button class="quick-filter-btn" onclick="setQuickFilter('all')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;">All Time</button>
+                            <span style="font-size: 14px; font-weight: 600; color: #666; margin-right: 5px;" data-translate="quick">Quick:</span>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('today')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;" data-translate="today">Today</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('week')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;" data-translate="thisWeek">This Week</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('month')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;" data-translate="thisMonth">This Month</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('year')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;" data-translate="thisYear">This Year</button>
+                            <button class="quick-filter-btn" onclick="setQuickFilter('all')" style="padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; background: white; border-radius: 15px; cursor: pointer; transition: all 0.2s;" data-translate="allTime">All Time</button>
                         </div>
                     </div>
                     
                     <div class="filter-header" onclick="toggleFilters()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h4 style="margin: 0;">Advanced Filters</h4>
+                        <h4 style="margin: 0;" data-translate="advancedFilters">Advanced Filters</h4>
                         <span id="filter-toggle-icon" style="font-size: 18px; transition: transform 0.3s ease;">▼</span>
                     </div>
                     <div id="filter-content" style="display: none;">
                         <div class="filter-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 12px;">From Date</label>
+                                <label style="font-size: 12px;" data-translate="fromDate">From Date</label>
                                 <input type="date" id="filterFromDate" style="padding: 8px; font-size: 14px;">
                             </div>
                             <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 12px;">To Date</label>
+                                <label style="font-size: 12px;" data-translate="toDate">To Date</label>
                                 <input type="date" id="filterToDate" style="padding: 8px; font-size: 14px;">
                             </div>
                         </div>
                         <div class="filter-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 12px;">Type</label>
+                                <label style="font-size: 12px;" data-translate="transactionType">Type</label>
                                 <select id="filterType" style="padding: 8px; font-size: 14px;">
-                                    <option value="">All Types</option>
-                                    <option value="income">Cash In</option>
-                                    <option value="expense">Cash Out</option>
+                                    <option value="" data-translate="allTypes">All Types</option>
+                                    <option value="income" data-translate="cashIn">Cash In</option>
+                                    <option value="expense" data-translate="cashOut">Cash Out</option>
                                 </select>
                             </div>
                             <div class="form-group" style="margin: 0;">
-                                <label style="font-size: 12px;">Payment Mode</label>
+                                <label style="font-size: 12px;" data-translate="paymentMode">Payment Mode</label>
                                 <select id="filterPaymentMode" style="padding: 8px; font-size: 14px;">
-                                    <option value="">All Modes</option>
+                                    <option value="" data-translate="allModes">All Modes</option>
                                 </select>
                             </div>
                             <div class="form-group" style="margin: 0;">
@@ -652,10 +687,10 @@
                 
                 <!-- Cash In/Out Buttons (shown only when viewing transactions) -->
                 <div id="transaction-action-buttons" class="transaction-actions" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 1000;">
-                    <button class="btn btn-success" onclick="showAddTransactionModal('income')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);">
+                    <button class="btn btn-success" onclick="showAddTransactionModal('income')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);" data-translate="cashIn">
                         💰 Cash In
                     </button>
-                    <button class="btn btn-danger" onclick="showAddTransactionModal('expense')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);">
+                    <button class="btn btn-danger" onclick="showAddTransactionModal('expense')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);" data-translate="cashOut">
                         💸 Cash Out
                     </button>
                 </div>
@@ -664,10 +699,10 @@
             <!-- Reports Tab -->
             <div id="reports-tab" class="tab-content hidden">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="margin: 0;">Financial Summary</h3>
+                    <h3 style="margin: 0;" data-translate="financialReports">Financial Summary</h3>
                     <div class="form-group" style="margin: 0; min-width: 200px;">
                         <select id="reportBookSelector" onchange="loadReports()" style="padding: 8px; font-size: 14px; width: 100%;">
-                            <option value="">All Books</option>
+                            <option value="" data-translate="allBooks">All Books</option>
                             <!-- Books will be populated here -->
                         </select>
                     </div>
@@ -676,33 +711,33 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value positive" id="totalIncome">₹0</div>
-                        <div class="stat-label">Total Income</div>
+                        <div class="stat-label" data-translate="totalIncome">Total Income</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value negative" id="totalExpenses">₹0</div>
-                        <div class="stat-label">Total Expenses</div>
+                        <div class="stat-label" data-translate="totalExpenses">Total Expenses</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="netBalance">₹0</div>
-                        <div class="stat-label">Net Balance</div>
+                        <div class="stat-label" data-translate="netBalance">Net Balance</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="totalTransactions">0</div>
-                        <div class="stat-label">Transactions</div>
+                        <div class="stat-label" data-translate="transactions">Transactions</div>
                     </div>
                 </div>
                 
                 <!-- Category Analysis Chart -->
                 <div class="card" style="margin: 20px 0;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h4 style="margin: 0;">Category Analysis</h4>
+                        <h4 style="margin: 0;" data-translate="categoryBreakdown">Category Analysis</h4>
                         <div class="chart-toggle" style="display: flex; gap: 10px;">
                             <button id="incomeChartBtn" class="chart-toggle-btn active" onclick="toggleChartType('income')" 
-                                    style="padding: 8px 16px; border: 2px solid #4CAF50; background: #4CAF50; color: white; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
+                                    style="padding: 8px 16px; border: 2px solid #4CAF50; background: #4CAF50; color: white; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;" data-translate="showIncome">
                                 💰 Income
                             </button>
                             <button id="expenseChartBtn" class="chart-toggle-btn" onclick="toggleChartType('expense')" 
-                                    style="padding: 8px 16px; border: 2px solid #f44336; background: transparent; color: #f44336; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;">
+                                    style="padding: 8px 16px; border: 2px solid #f44336; background: transparent; color: #f44336; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.3s;" data-translate="showExpenses">
                                 💸 Expenses
                             </button>
                         </div>
@@ -726,10 +761,10 @@
             
             <!-- Settings Tab -->
             <div id="settings-tab" class="tab-content hidden">
-                <h3>Settings</h3>
+                <h3 data-translate="settings">Settings</h3>
                 
                 <div class="card">
-                    <h4>Currency Settings</h4>
+                    <h4 data-translate="currencySettings">Currency Settings</h4>
                     <div class="currency-selector">
                         <div class="currency-option selected" onclick="setCurrency('INR', '₹')">
                             <strong>₹</strong><br>INR
@@ -745,9 +780,21 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="card">
+                    <h4 data-translate="languageSettings">Language Settings</h4>
+                    <div class="language-selector">
+                        <div class="language-option selected" onclick="setLanguage('en')" id="lang-en">
+                            <strong>🇺🇸</strong><br><span data-translate="english">English</span>
+                        </div>
+                        <div class="language-option" onclick="setLanguage('kn')" id="lang-kn">
+                            <strong>🇮🇳</strong><br><span data-translate="kannada">ಕನ್ನಡ</span>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="card">
-                    <h4>Transaction Types</h4>
+                    <h4 data-translate="transactionTypes">Transaction Types</h4>
                     <div id="transaction-types">
                         <!-- Transaction types will be loaded here -->
                     </div>
@@ -829,19 +876,19 @@
     <div id="addBookModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Add New Book</h3>
+                <h3 data-translate="addNewBookTitle">Add New Book</h3>
                 <button class="close-btn" onclick="closeModal('addBookModal')">&times;</button>
             </div>
             <form onsubmit="addBook(event)">
                 <div class="form-group">
-                    <label>Book Name</label>
-                    <input type="text" id="bookName" required placeholder="e.g., Personal Expenses">
+                    <label data-translate="bookName">Book Name</label>
+                    <input type="text" id="bookName" required placeholder="e.g., Personal Expenses" data-translate="bookName">
                 </div>
                 <div class="form-group">
-                    <label>Description (Optional)</label>
-                    <textarea id="bookDescription" placeholder="Brief description of this book"></textarea>
+                    <label data-translate="bookDescription">Description (Optional)</label>
+                    <textarea id="bookDescription" placeholder="Brief description of this book" data-translate="bookDescription"></textarea>
                 </div>
-                <button type="submit" class="btn">Create Book</button>
+                <button type="submit" class="btn" data-translate="save">Create Book</button>
             </form>
         </div>
     </div>
@@ -850,47 +897,47 @@
     <div id="addTransactionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Add Transaction</h3>
+                <h3 data-translate="addTransactionTitle">Add Transaction</h3>
                 <button class="close-btn" onclick="closeModal('addTransactionModal')">&times;</button>
             </div>
             <form onsubmit="addTransaction(event)">
                 <div class="form-group">
-                    <label>Book</label>
+                    <label data-translate="book">Book</label>
                     <select id="transactionBook" required>
                         <!-- Books will be populated here -->
                     </select>
-                    <small id="bookAutoSelectedNote" style="color: #666; font-size: 12px; display: none;">
+                    <small id="bookAutoSelectedNote" style="color: #666; font-size: 12px; display: none;" data-translate="bookAutoSelected">
                         📌 Book auto-selected from your choice
                     </small>
                 </div>
                 <div class="form-group">
-                    <label>Type</label>
+                    <label data-translate="transactionType">Type</label>
                     <select id="transactionType" required>
-                        <option value="income">Cash In (Income)</option>
-                        <option value="expense">Cash Out (Expense)</option>
+                        <option value="income" data-translate="cashInIncome">Cash In (Income)</option>
+                        <option value="expense" data-translate="cashOutExpense">Cash Out (Expense)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
-                    <input type="number" id="transactionAmount" required step="0.01" placeholder="0.00">
+                    <label data-translate="amount">Amount</label>
+                    <input type="number" id="transactionAmount" required step="0.01" placeholder="0.00" data-translate="amount">
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" id="transactionDescription" required placeholder="What was this for?">
+                    <label data-translate="description">Description</label>
+                    <input type="text" id="transactionDescription" required placeholder="What was this for?" data-translate="description">
                 </div>
                 <div class="form-group">
-                    <label>Payment Mode</label>
+                    <label data-translate="paymentMode">Payment Mode</label>
                     <select id="transactionPaymentMode" required>
                         <!-- Payment modes will be populated here -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Category</label>
+                    <label data-translate="category">Category</label>
                     <select id="transactionCategory" required>
                         <!-- Categories will be populated here -->
                     </select>
                 </div>
-                <button type="submit" class="btn">Add Transaction</button>
+                <button type="submit" class="btn" data-translate="addTransactionBtn">Add Transaction</button>
             </form>
         </div>
     </div>
@@ -993,7 +1040,8 @@
             settings: {
                 currency: 'INR',
                 currencySymbol: '₹',
-                theme: 'light'
+                theme: 'light',
+                language: 'en'
             },
             currentBook: null,
             categoryChart: null,
@@ -1012,7 +1060,267 @@
             lastBackup: 'cashlytics_last_backup'
         };
 
-        // Google Drive API Configuration
+        // Language translations
+        const translations = {
+            en: {
+                // App title and navigation
+                appName: 'Cashlytics - Personal Finance Tracker',
+                books: 'Books',
+                transactions: 'Transactions',
+                reports: 'Reports',
+                settings: 'Settings',
+                
+                // Books tab
+                noBooksYet: 'No transaction books yet.',
+                createFirstBook: 'Create your first book to get started!',
+                switchingBrowsers: 'Switching browsers?',
+                exportDataInfo: 'Export your data from your main browser and import it here to sync your information across devices.',
+                addNewBook: '+ Add New Transaction Book',
+                
+                // Transactions tab
+                allTransactions: 'All Transactions',
+                quick: 'Quick:',
+                today: 'Today',
+                thisWeek: 'This Week',
+                thisMonth: 'This Month',
+                thisYear: 'This Year',
+                allTime: 'All Time',
+                advancedFilters: 'Advanced Filters',
+                book: 'Book',
+                allBooks: 'All Books',
+                transactionType: 'Transaction Type',
+                allTypes: 'All Types',
+                fromDate: 'From Date',
+                toDate: 'To Date',
+                paymentMode: 'Payment Mode',
+                allModes: 'All Modes',
+                category: 'Category',
+                allCategories: 'All Categories',
+                applyFilters: 'Apply Filters',
+                clearFilters: 'Clear Filters',
+                noTransactions: 'No transactions found',
+                addFirstTransaction: 'Add your first transaction to get started!',
+                income: 'Income',
+                expense: 'Expense',
+                
+                // Reports tab
+                financialReports: 'Financial Reports',
+                selectBook: 'Select Book',
+                totalIncome: 'Total Income',
+                totalExpenses: 'Total Expenses',
+                netBalance: 'Net Balance',
+                categoryBreakdown: 'Category Breakdown',
+                showIncome: 'Show Income',
+                showExpenses: 'Show Expenses',
+                noDataChart: 'No data available for chart',
+                addTransactionsChart: 'Add some transactions to see your financial breakdown!',
+                
+                // Settings tab
+                currencySettings: 'Currency Settings',
+                selectCurrency: 'Select Currency',
+                languageSettings: 'Language Settings',
+                selectLanguage: 'Select Language',
+                english: 'English',
+                kannada: 'ಕನ್ನಡ (Kannada)',
+                transactionTypes: 'Transaction Types',
+                addTransactionType: 'Add Transaction Type',
+                paymentModes: 'Payment Modes',
+                addPaymentMode: 'Add Payment Mode',
+                appInstallation: 'App Installation',
+                installAsNativeApp: 'Install Cashlytics as a native app on your device for better experience',
+                dataManagement: 'Data Management',
+                crossBrowserSync: 'Cross-browser sync:',
+                exportDataSync: 'Export your data to share between different browsers or devices.',
+                exportData: 'Export Data',
+                importData: 'Import Data',
+                saveToFile: 'Save to File',
+                loadFromFile: 'Load from File',
+                clearAllData: 'Clear All Data',
+                
+                // Buttons and actions
+                cancel: 'Cancel',
+                save: 'Save',
+                delete: 'Delete',
+                edit: 'Edit',
+                add: 'Add',
+                back: 'Back',
+                close: 'Close',
+                
+                // Modal titles
+                addNewBookTitle: 'Add New Book',
+                addTransactionTitle: 'Add Transaction',
+                editTransactionTitle: 'Edit Transaction',
+                addTransactionTypeTitle: 'Add Transaction Type',
+                addPaymentModeTitle: 'Add Payment Mode',
+                
+                // Form fields
+                bookName: 'Book Name',
+                bookDescription: 'Description (optional)',
+                amount: 'Amount',
+                description: 'Description',
+                date: 'Date',
+                typeName: 'Type Name',
+                modeName: 'Mode Name',
+                
+                // Messages
+                bookDeleteConfirm: 'Are you sure you want to delete the book',
+                transactionDeleteConfirm: 'This will also delete',
+                transactionWord: 'transaction(s) associated with this book.',
+                actionCannotBeUndone: 'This action cannot be undone.',
+                bookDeleted: 'Book and its transactions have been deleted.',
+                dataExported: 'Data exported successfully!',
+                dataImported: 'Data imported successfully!',
+                dataCleared: 'All data cleared successfully!',
+                
+                // Cash In/Out buttons
+                cashIn: 'Cash In',
+                cashOut: 'Cash Out',
+                
+                // Additional translation keys
+                cashInIncome: 'Cash In (Income)',
+                cashOutExpense: 'Cash Out (Expense)',
+                addTransactionBtn: 'Add Transaction',
+                addNewBookBtn: '+ Add New Transaction Book',
+                bookAutoSelected: '📌 Book auto-selected from your choice',
+                tab_books: '📚 Books',
+                tab_transactions: '💳 Transactions', 
+                tab_reports: '📊 Reports',
+                tab_settings: '⚙️ Settings'
+            },
+            
+            kn: {
+                // App title and navigation
+                appName: 'ಕ್ಯಾಶ್‌ಲಿಟಿಕ್ಸ್ - ವೈಯಕ್ತಿಕ ಹಣಕಾಸು ಟ್ರ್ಯಾಕರ್',
+                books: 'ಪುಸ್ತಕಗಳು',
+                transactions: 'ವಹಿವಾಟುಗಳು',
+                reports: 'ವರದಿಗಳು',
+                settings: 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+                
+                // Books tab
+                noBooksYet: 'ಇನ್ನೂ ಯಾವುದೇ ವಹಿವಾಟು ಪುಸ್ತಕಗಳಿಲ್ಲ.',
+                createFirstBook: 'ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಮೊದಲ ಪುಸ್ತಕವನ್ನು ರಚಿಸಿ!',
+                switchingBrowsers: 'ಬ್ರೌಸರ್‌ಗಳನ್ನು ಬದಲಾಯಿಸುತ್ತಿದ್ದೀರಾ?',
+                exportDataInfo: 'ಸಾಧನಗಳಾದ್ಯಂತ ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಸಿಂಕ್ ಮಾಡಲು ನಿಮ್ಮ ಮುಖ್ಯ ಬ್ರೌಸರ್‌ನಿಂದ ನಿಮ್ಮ ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡಿ ಮತ್ತು ಇಲ್ಲಿ ಆಮದು ಮಾಡಿ.',
+                addNewBook: '+ ಹೊಸ ವಹಿವಾಟು ಪುಸ್ತಕವನ್ನು ಸೇರಿಸಿ',
+                
+                // Transactions tab
+                allTransactions: 'ಎಲ್ಲಾ ವಹಿವಾಟುಗಳು',
+                quick: 'ತ್ವರಿತ:',
+                today: 'ಇಂದು',
+                thisWeek: 'ಈ ವಾರ',
+                thisMonth: 'ಈ ತಿಂಗಳು',
+                thisYear: 'ಈ ವರ್ಷ',
+                allTime: 'ಎಲ್ಲಾ ಸಮಯ',
+                advancedFilters: 'ಸುಧಾರಿತ ಫಿಲ್ಟರ್‌ಗಳು',
+                book: 'ಪುಸ್ತಕ',
+                allBooks: 'ಎಲ್ಲಾ ಪುಸ್ತಕಗಳು',
+                transactionType: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರ',
+                allTypes: 'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು',
+                fromDate: 'ದಿನಾಂಕದಿಂದ',
+                toDate: 'ದಿನಾಂಕದವರೆಗೆ',
+                paymentMode: 'ಪಾವತಿ ವಿಧಾನ',
+                allModes: 'ಎಲ್ಲಾ ವಿಧಾನಗಳು',
+                category: 'ವರ್ಗ',
+                allCategories: 'ಎಲ್ಲಾ ವರ್ಗಗಳು',
+                applyFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಿ',
+                clearFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ',
+                noTransactions: 'ಯಾವುದೇ ವಹಿವಾಟುಗಳು ಕಂಡುಬಂದಿಲ್ಲ',
+                addFirstTransaction: 'ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಮೊದಲ ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ!',
+                income: 'ಆದಾಯ',
+                expense: 'ಖರ್ಚು',
+                
+                // Reports tab
+                financialReports: 'ಹಣಕಾಸು ವರದಿಗಳು',
+                selectBook: 'ಪುಸ್ತಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+                totalIncome: 'ಒಟ್ಟು ಆದಾಯ',
+                totalExpenses: 'ಒಟ್ಟು ಖರ್ಚುಗಳು',
+                netBalance: 'ನಿವ್ವಳ ಬ್ಯಾಲೆನ್ಸ್',
+                categoryBreakdown: 'ವರ್ಗ ವಿಭಾಗ',
+                showIncome: 'ಆದಾಯವನ್ನು ತೋರಿಸಿ',
+                showExpenses: 'ಖರ್ಚುಗಳನ್ನು ತೋರಿಸಿ',
+                noDataChart: 'ಚಾರ್ಟ್‌ಗಾಗಿ ಯಾವುದೇ ಡೇಟಾ ಲಭ್ಯವಿಲ್ಲ',
+                addTransactionsChart: 'ನಿಮ್ಮ ಹಣಕಾಸಿನ ವಿಭಾಗವನ್ನು ನೋಡಲು ಕೆಲವು ವಹಿವಾಟುಗಳನ್ನು ಸೇರಿಸಿ!',
+                
+                // Settings tab
+                currencySettings: 'ಕರೆನ್ಸಿ ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+                selectCurrency: 'ಕರೆನ್ಸಿ ಆಯ್ಕೆಮಾಡಿ',
+                languageSettings: 'ಭಾಷಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+                selectLanguage: 'ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+                english: 'English',
+                kannada: 'ಕನ್ನಡ (Kannada)',
+                transactionTypes: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರಗಳು',
+                addTransactionType: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರವನ್ನು ಸೇರಿಸಿ',
+                paymentModes: 'ಪಾವತಿ ವಿಧಾನಗಳು',
+                addPaymentMode: 'ಪಾವತಿ ವಿಧಾನವನ್ನು ಸೇರಿಸಿ',
+                appInstallation: 'ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲೇಶನ್',
+                installAsNativeApp: 'ಉತ್ತಮ ಅನುಭವಕ್ಕಾಗಿ ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಕ್ಯಾಶ್‌ಲಿಟಿಕ್ಸ್ ಅನ್ನು ನೇಟಿವ್ ಆ್ಯಪ್ ಆಗಿ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ',
+                dataManagement: 'ಡೇಟಾ ನಿರ್ವಹಣೆ',
+                crossBrowserSync: 'ಕ್ರಾಸ್-ಬ್ರೌಸರ್ ಸಿಂಕ್:',
+                exportDataSync: 'ವಿವಿಧ ಬ್ರೌಸರ್‌ಗಳು ಅಥವಾ ಸಾಧನಗಳ ನಡುವೆ ಹಂಚಿಕೊಳ್ಳಲು ನಿಮ್ಮ ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡಿ.',
+                exportData: 'ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡಿ',
+                importData: 'ಡೇಟಾವನ್ನು ಆಮದು ಮಾಡಿ',
+                saveToFile: 'ಫೈಲ್‌ಗೆ ಉಳಿಸಿ',
+                loadFromFile: 'ಫೈಲ್‌ನಿಂದ ಲೋಡ್ ಮಾಡಿ',
+                clearAllData: 'ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ತೆರವುಗೊಳಿಸಿ',
+                
+                // Buttons and actions
+                cancel: 'ರದ್ದುಮಾಡಿ',
+                save: 'ಉಳಿಸಿ',
+                delete: 'ಅಳಿಸಿ',
+                edit: 'ಸಂಪಾದಿಸಿ',
+                add: 'ಸೇರಿಸಿ',
+                back: 'ಹಿಂದೆ',
+                close: 'ಮುಚ್ಚಿ',
+                
+                // Modal titles
+                addNewBookTitle: 'ಹೊಸ ಪುಸ್ತಕವನ್ನು ಸೇರಿಸಿ',
+                addTransactionTitle: 'ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ',
+                editTransactionTitle: 'ವಹಿವಾಟನ್ನು ಸಂಪಾದಿಸಿ',
+                addTransactionTypeTitle: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರವನ್ನು ಸೇರಿಸಿ',
+                addPaymentModeTitle: 'ಪಾವತಿ ವಿಧಾನವನ್ನು ಸೇರಿಸಿ',
+                
+                // Form fields
+                bookName: 'ಪುಸ್ತಕದ ಹೆಸರು',
+                bookDescription: 'ವಿವರಣೆ (ಐಚ್ಛಿಕ)',
+                amount: 'ಮೊತ್ತ',
+                description: 'ವಿವರಣೆ',
+                date: 'ದಿನಾಂಕ',
+                typeName: 'ಪ್ರಕಾರದ ಹೆಸರು',
+                modeName: 'ವಿಧಾನದ ಹೆಸರು',
+                
+                // Messages
+                bookDeleteConfirm: 'ನೀವು ಖಚಿತವಾಗಿ ಪುಸ್ತಕವನ್ನು ಅಳಿಸಲು ಬಯಸುವಿರಾ',
+                transactionDeleteConfirm: 'ಇದು ಸಹ ಅಳಿಸುತ್ತದೆ',
+                transactionWord: 'ಈ ಪುಸ್ತಕಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ವಹಿವಾಟು(ಗಳು).',
+                actionCannotBeUndone: 'ಈ ಕ್ರಿಯೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ.',
+                bookDeleted: 'ಪುಸ್ತಕ ಮತ್ತು ಅದರ ವಹಿವಾಟುಗಳನ್ನು ಅಳಿಸಲಾಗಿದೆ.',
+                dataExported: 'ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ!',
+                dataImported: 'ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಆಮದು ಮಾಡಲಾಗಿದೆ!',
+                dataCleared: 'ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ತೆರವುಗೊಳಿಸಲಾಗಿದೆ!',
+                
+                // Cash In/Out buttons
+                cashIn: 'ಬಂದ ಹಣ',
+                cashOut: 'ಹೋದ ಹಣ',
+                
+                // Additional translation keys
+                cashInIncome: 'ಬಂದ ಹಣ (ಆದಾಯ)',
+                cashOutExpense: 'ಹೋದ ಹಣ (ಖರ್ಚು)',
+                addTransactionBtn: 'ವಹಿವಾಟನ್ನು ಸೇರಿಸಿ',
+                addNewBookBtn: '+ ಹೊಸ ವಹಿವಾಟು ಪುಸ್ತಕವನ್ನು ಸೇರಿಸಿ',
+                bookAutoSelected: '📌 ನಿಮ್ಮ ಆಯ್ಕೆಯಿಂದ ಪುಸ್ತಕವನ್ನು ಸ್ವಯಂ-ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ',
+                tab_books: '📚 ಪುಸ್ತಕಗಳು',
+                tab_transactions: '💳 ವಹಿವಾಟುಗಳು',
+                tab_reports: '📊 ವರದಿಗಳು',
+                tab_settings: '⚙️ ಸೆಟ್ಟಿಂಗ್‌ಗಳು'
+            }
+        };
+
+        // Translation function
+        function t(key) {
+            const currentLang = appState.settings.language || 'en';
+            return translations[currentLang][key] || translations.en[key] || key;
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing app...');
@@ -1021,6 +1329,19 @@
             initializeDefaultData();
             updateNavigationUI();
             checkDataSync();
+            
+            // Initialize language display
+            updateLanguageDisplay();
+            
+            // Set selected language option
+            const currentLang = appState.settings.language || 'en';
+            document.querySelectorAll('.language-option').forEach(option => {
+                if (option.onclick.toString().includes(`'${currentLang}'`)) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
             
             // Ensure books are loaded after a small delay to allow DOM to be fully ready
             setTimeout(() => {
@@ -2198,6 +2519,68 @@
             loadBooks();
             loadTransactions();
             updateStats();
+        }
+
+        function setLanguage(langCode) {
+            appState.settings.language = langCode;
+            saveAppData();
+            
+            // Update UI
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Find and select the clicked option
+            document.querySelectorAll('.language-option').forEach(option => {
+                if (option.onclick.toString().includes(`'${langCode}'`)) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // Update all text elements
+            updateLanguageDisplay();
+        }
+        
+        function updateLanguageDisplay() {
+            const lang = appState.settings.language || 'en';
+            
+            // Update all elements with data-translate attribute
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang] && translations[lang][key]) {
+                    // Handle different element types
+                    if (element.tagName === 'INPUT') {
+                        if (element.type === 'submit' || element.type === 'button') {
+                            element.value = translations[lang][key];
+                        } else if (element.hasAttribute('placeholder')) {
+                            element.placeholder = translations[lang][key];
+                        }
+                    } else if (element.tagName === 'TEXTAREA' && element.hasAttribute('placeholder')) {
+                        element.placeholder = translations[lang][key];
+                    } else if (element.tagName === 'OPTION') {
+                        element.textContent = translations[lang][key];
+                    } else if (element.tagName === 'BUTTON') {
+                        // Simply use the translation as-is (emojis already included in translation keys)
+                        element.textContent = translations[lang][key];
+                    } else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+            
+            // Update title
+            document.title = t('app_title');
+            
+            // Refresh any dynamically loaded content
+            if (typeof loadBooks === 'function') {
+                setTimeout(() => {
+                    loadBooks();
+                    loadTransactions();
+                    if (!document.getElementById('reports-tab').classList.contains('hidden')) {
+                        loadReports();
+                    }
+                }, 100);
+            }
         }
 
         function updateStats() {

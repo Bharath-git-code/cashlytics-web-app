@@ -3,7 +3,7 @@ const urlsToCache = [
   "/cashlytics-web-app/",
   "/cashlytics-web-app/index.html",
   "/cashlytics-web-app/manifest.json",
-  "https://cdn.jsdelivr.net/npm/chart.js"
+  "https://cdn.jsdelivr.net/npm/chart.js",
 ];
 
 // Install event - cache resources
@@ -33,27 +33,34 @@ self.addEventListener("fetch", (event) => {
         }
 
         // For navigation requests (like opening the PWA), always try index.html
-        if (event.request.mode === "navigate" || 
-            event.request.destination === "document" ||
-            event.request.headers.get('accept').includes('text/html')) {
-          
+        if (
+          event.request.mode === "navigate" ||
+          event.request.destination === "document" ||
+          event.request.headers.get("accept").includes("text/html")
+        ) {
           // Try to fetch the requested URL first
           return fetch(event.request).catch(() => {
             // If that fails, serve index.html from cache
-            return caches.match("/cashlytics-web-app/index.html").then((cachedIndex) => {
-              if (cachedIndex) {
-                return cachedIndex;
-              }
-              // Final fallback - try to fetch index.html
-              return fetch("/cashlytics-web-app/index.html");
-            });
+            return caches
+              .match("/cashlytics-web-app/index.html")
+              .then((cachedIndex) => {
+                if (cachedIndex) {
+                  return cachedIndex;
+                }
+                // Final fallback - try to fetch index.html
+                return fetch("/cashlytics-web-app/index.html");
+              });
           });
         }
 
         // For other requests, try network first
         return fetch(event.request).then((response) => {
           // Cache successful responses
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (
+            response &&
+            response.status === 200 &&
+            response.type === "basic"
+          ) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
@@ -67,7 +74,7 @@ self.addEventListener("fetch", (event) => {
         if (
           event.request.destination === "document" ||
           event.request.mode === "navigate" ||
-          event.request.headers.get('accept').includes('text/html')
+          event.request.headers.get("accept").includes("text/html")
         ) {
           return caches.match("/cashlytics-web-app/index.html");
         }
