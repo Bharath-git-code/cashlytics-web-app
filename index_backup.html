@@ -8,7 +8,6 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%232196F3'/%3E%3Ctext x='50' y='60' font-family='Arial' font-size='40' fill='white' text-anchor='middle'%3E💰%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -24,153 +23,24 @@
             overflow-x: hidden;
         }
         
-        /* Hide old header buttons and ensure hamburger is visible */
-        .header-actions .header-btn {
-            display: none !important;
-        }
-        
-        .hamburger-menu {
-            display: block !important;
-        }
-        
-        /* Hamburger Menu Styles */
-        .hamburger-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        
-        .hamburger-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .hamburger-line {
-            display: block;
-            width: 20px;
-            height: 2px;
-            background-color: white;
-            margin: 4px 0;
-            transition: 0.3s;
-        }
-        
-        .hamburger-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            min-width: 150px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            overflow: hidden;
-            z-index: 1000;
-            margin-top: 5px;
-        }
-        
-        .hamburger-dropdown.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-        
-        .hamburger-dropdown a {
-            color: #333;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 14px;
-            transition: background-color 0.3s ease;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .hamburger-dropdown a:last-child {
-            border-bottom: none;
-        }
-        
-        .hamburger-dropdown a:hover {
-            background-color: #f8f9fa;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Collapsible Section Styles */
-        .collapsible-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 5px 0;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .collapsible-header:hover {
-            color: #2196F3;
-        }
-        
-        .collapsible-icon {
-            font-size: 16px;
-            transition: transform 0.3s ease;
-        }
-        
-        .collapsible-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-        
-        .collapsible-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-            max-height: 1000px;
-            opacity: 1;
-        }
-        
-        .collapsible-content.collapsed {
-            max-height: 0;
-            opacity: 0;
-            margin-bottom: 0;
-        }
-        
         .app-container {
             max-width: 420px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: white;
             min-height: 100vh;
             position: relative;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border-radius: 20px;
-            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
         }
         
         .header {
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.9), rgba(25, 118, 210, 0.9));
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, #2196F3, #1976D2);
             color: white;
             padding: 20px;
             text-align: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: relative;
         }
         
@@ -343,10 +213,8 @@
         
         .tab-bar {
             display: flex;
-            background: rgba(248, 249, 250, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(233, 236, 239, 0.6);
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
             position: sticky;
             top: 90px;
             z-index: 99;
@@ -377,14 +245,11 @@
         }
         
         .card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 16px;
+            background: white;
+            border-radius: 12px;
             padding: 20px;
             margin: 15px 0;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-left: 4px solid #2196F3;
             position: relative;
             transition: all 0.3s ease;
@@ -544,18 +409,15 @@
         }
         
         .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
+            background: white;
+            border-radius: 15px;
             padding: 25px;
             margin: 20px;
             max-width: 400px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
         
         .modal-header {
@@ -633,10 +495,7 @@
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
-            background: rgba(33, 150, 243, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
         }
         
         .btn-secondary {
@@ -886,19 +745,6 @@
             <p id="headerSubtitle">Personal Finance Tracker</p>
             
             <!-- Header Actions -->
-            <div class="hamburger-menu" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);">
-                <button class="hamburger-button" onclick="toggleMenu()">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </button>
-                <div class="hamburger-dropdown" id="hamburgerDropdown">
-                    <a href="#" onclick="showTab('reports'); toggleMenu();" id="reports-menu" data-translate="tab_reports">📊 Reports</a>
-                    <a href="#" onclick="showTab('settings'); toggleMenu();" id="settings-menu" data-translate="tab_settings">⚙️ Settings</a>
-                    <a href="#" onclick="showTab('about'); toggleMenu();" id="about-menu" data-translate="tab_about">ℹ️ About</a>
-                </div>
-            </div>
-            <!-- Header Actions -->
             <div class="header-actions" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; gap: 10px;">
                 <button class="header-btn" onclick="showTab('reports')" style="background: none; border: 1px solid #ddd; padding: 8px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s;" data-translate="tab_reports">� Reports</button>
                 <button class="header-btn" onclick="showTab('settings')" style="background: none; border: 1px solid #ddd; padding: 8px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s;" data-translate="tab_settings">⚙️ Settings</button>
@@ -1095,61 +941,19 @@
                 </div>
 
                 <div class="card">
-                    <div class="collapsible-header" onclick="toggleCollapsible('transaction-types-content')">
-                        <h4 data-translate="transactionTypes">Transaction Types</h4>
-                        <span class="collapsible-icon collapsed">▼</span>
+                    <h4 data-translate="transactionTypes">Transaction Types</h4>
+                    <div id="transaction-types">
+                        <!-- Transaction types will be loaded here -->
                     </div>
-                    <div id="transaction-types-content" class="collapsible-content collapsed">
-                        <div id="transaction-types">
-                            <!-- Transaction types will be loaded here -->
-                        </div>
-                        <button class="btn btn-secondary" onclick="showAddTypeModal()">Add Transaction Type</button>
-                    </div>
+                    <button class="btn btn-secondary" onclick="showAddTypeModal()">Add Transaction Type</button>
                 </div>
 
                 <div class="card">
-                    <div class="collapsible-header" onclick="toggleCollapsible('payment-modes-content')">
-                        <h4 data-translate="paymentModes">Payment Modes</h4>
-                        <span class="collapsible-icon collapsed">▼</span>
+                    <h4>Payment Modes</h4>
+                    <div id="payment-modes">
+                        <!-- Payment modes will be loaded here -->
                     </div>
-                    <div id="payment-modes-content" class="collapsible-content collapsed">
-                        <div id="payment-modes">
-                            <!-- Payment modes will be loaded here -->
-                        </div>
-                        <button class="btn btn-secondary" onclick="showAddPaymentModeModal()">Add Payment Mode</button>
-                    </div>
-                </div>
-                
-                <!-- Excel Import Section -->
-                <div class="card">
-                    <div class="collapsible-header" onclick="toggleCollapsible('excel-import-content')">
-                        <h4 data-translate="excelImport">📊 Import from Excel</h4>
-                        <span class="collapsible-icon collapsed">▼</span>
-                    </div>
-                    <div id="excel-import-content" class="collapsible-content collapsed">
-                        <div class="form-group">
-                            <label data-translate="selectBookForImport">Select Book to Import Into:</label>
-                            <select id="importBookSelect" required>
-                                <!-- Books will be populated here -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label data-translate="excelFile">Excel File (.xlsx, .xls, .csv):</label>
-                            <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="margin-bottom: 10px;">
-                            <small style="color: #666; font-size: 12px;" data-translate="excelFormat">
-                                📋 Expected format: Date, Description, Amount, Type (income/expense), Category, Payment Mode
-                            </small>
-                        </div>
-                        <button class="btn" onclick="importFromExcel()" data-translate="importBtn">
-                            📥 Import Transactions
-                        </button>
-                        <div id="importProgress" style="display: none; margin-top: 10px;">
-                            <div style="background: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden;">
-                                <div id="importProgressBar" style="background: #4CAF50; height: 100%; width: 0%; transition: width 0.3s;"></div>
-                            </div>
-                            <p id="importStatus" style="margin: 5px 0; font-size: 14px;"></p>
-                        </div>
-                    </div>
+                    <button class="btn btn-secondary" onclick="showAddPaymentModeModal()">Add Payment Mode</button>
                 </div>
                 
                 <div class="card">
@@ -1313,13 +1117,6 @@
                         <!-- Categories will be populated here -->
                     </select>
                 </div>
-                <div class="form-group">
-                    <label data-translate="transactionDate">Date</label>
-                    <input type="date" id="transactionDate" required>
-                    <small style="color: #666; font-size: 12px;" data-translate="dateHelper">
-                        📅 Select the date when this transaction occurred
-                    </small>
-                </div>
                 <button type="submit" class="btn" data-translate="addTransactionBtn">Add Transaction</button>
             </form>
         </div>
@@ -1402,11 +1199,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label data-translate="transactionDate">Date</label>
-                    <input type="date" id="editTransactionDate" required>
-                    <small style="color: #666; font-size: 12px;" data-translate="dateHelper">
-                        📅 Select the date when this transaction occurred
-                    </small>
+                    <label>Date</label>
+                    <input type="datetime-local" id="editTransactionDate" required>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" class="btn" style="flex: 1;">Update Transaction</button>
@@ -1481,13 +1275,6 @@
                 paymentMode: 'Payment Mode',
                 allModes: 'All Modes',
                 category: 'Category',
-                transactionDate: 'Date',
-                dateHelper: '📅 Select the date when this transaction occurred',
-                excelImport: '📊 Import from Excel',
-                selectBookForImport: 'Select Book to Import Into',
-                excelFile: 'Excel File (.xlsx, .xls, .csv)',
-                excelFormat: '📋 Expected format: Date, Description, Amount, Type (income/expense), Category, Payment Mode',
-                importBtn: '📥 Import Transactions',
                 allCategories: 'All Categories',
                 applyFilters: 'Apply Filters',
                 clearFilters: 'Clear Filters',
@@ -1516,7 +1303,6 @@
                 english: 'English',
                 kannada: 'ಕನ್ನಡ (Kannada)',
                 transactionTypes: 'Transaction Types',
-                paymentModes: 'Payment Modes',
                 addTransactionType: 'Add Transaction Type',
                 paymentModes: 'Payment Modes',
                 addPaymentMode: 'Add Payment Mode',
@@ -1581,7 +1367,6 @@
                 tab_reports: '📊 Reports',
                 tab_settings: '⚙️ Settings',
                 tab_about: 'ℹ️ About',
-                tab_about: 'ℹ️ About',
                 
                 // About page
                 about_subtitle: 'Personal Finance Tracker',
@@ -1630,13 +1415,6 @@
                 paymentMode: 'ಪಾವತಿ ವಿಧಾನ',
                 allModes: 'ಎಲ್ಲಾ ವಿಧಾನಗಳು',
                 category: 'ವರ್ಗ',
-                transactionDate: 'ದಿನಾಂಕ',
-                dateHelper: '📅 ಈ ವಹಿವಾಟು ನಡೆದ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
-                excelImport: '📊 ಎಕ್ಸೆಲ್‌ನಿಂದ ಆಮದು ಮಾಡಿ',
-                selectBookForImport: 'ಆಮದು ಮಾಡಲು ಪುಸ್ತಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
-                excelFile: 'ಎಕ್ಸೆಲ್ ಫೈಲ್ (.xlsx, .xls, .csv)',
-                excelFormat: '📋 ನಿರೀಕ್ಷಿತ ಸ್ವರೂಪ: ದಿನಾಂಕ, ವಿವರಣೆ, ಮೊತ್ತ, ಪ್ರಕಾರ (ಆದಾಯ/ಖರ್ಚು), ವರ್ಗ, ಪಾವತಿ ವಿಧಾನ',
-                importBtn: '📥 ವಹಿವಾಟುಗಳನ್ನು ಆಮದು ಮಾಡಿ',
                 allCategories: 'ಎಲ್ಲಾ ವರ್ಗಗಳು',
                 applyFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಿ',
                 clearFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ',
@@ -1665,7 +1443,6 @@
                 english: 'English',
                 kannada: 'ಕನ್ನಡ (Kannada)',
                 transactionTypes: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರಗಳು',
-                paymentModes: 'ಪಾವತಿ ವಿಧಾನಗಳು',
                 addTransactionType: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರವನ್ನು ಸೇರಿಸಿ',
                 paymentModes: 'ಪಾವತಿ ವಿಧಾನಗಳು',
                 addPaymentMode: 'ಪಾವತಿ ವಿಧಾನವನ್ನು ಸೇರಿಸಿ',
@@ -1944,43 +1721,6 @@
             });
         }
 
-        // Hamburger menu toggle
-        function toggleMenu() {
-            const dropdown = document.getElementById('hamburgerDropdown');
-            dropdown.classList.toggle('show');
-        }
-
-        // Close hamburger menu when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.matches('.hamburger-button') && !event.target.closest('.hamburger-button')) {
-                const dropdowns = document.getElementsByClassName('hamburger-dropdown');
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-
-        // Collapsible functionality
-        function toggleCollapsible(contentId) {
-            const content = document.getElementById(contentId);
-            const header = content.previousElementSibling;
-            const icon = header.querySelector('.collapsible-icon');
-            
-            content.classList.toggle('collapsed');
-            icon.classList.toggle('collapsed');
-            
-            // Force refresh the content when expanding
-            if (!content.classList.contains('collapsed')) {
-                // Reload the settings to ensure content is populated
-                setTimeout(() => {
-                    loadSettings();
-                }, 50);
-            }
-        }
-
         // Tab switching
         function showTab(tabName, addToHistory = true) {
             console.log('Switching to tab:', tabName);
@@ -1988,7 +1728,7 @@
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            // document.querySelectorAll('.header-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.header-btn').forEach(btn => btn.classList.remove('active'));
             
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.remove('hidden');
@@ -2011,10 +1751,10 @@
                 tabBar.style.display = 'none';
                 backBtn.classList.remove('hidden');
                 // Update active header button
-                // const headerButton = document.querySelector(`[onclick*="showTab('${tabName}')"].header-btn`);
-                // if (headerButton) {
-                //     headerButton.classList.add('active');
-                // }
+                const headerButton = document.querySelector(`[onclick*="showTab('${tabName}')"].header-btn`);
+                if (headerButton) {
+                    headerButton.classList.add('active');
+                }
             }
             
             // Refresh data for specific tabs
@@ -2070,9 +1810,6 @@
                     break;
                 case 'settings':
                     loadSettings();
-                    break;
-                case 'about':
-                    // About tab content is already in HTML, no special loading needed
                     break;
             }
         }
@@ -2393,71 +2130,28 @@
             // Update transaction types
             const typesContainer = document.getElementById('transaction-types');
             typesContainer.innerHTML = '';
-            if (appState.transactionTypes.length === 0) {
-                typesContainer.innerHTML = '<p style="color: #666; font-style: italic; padding: 10px;">No transaction types added yet. Click "Add Transaction Type" to get started.</p>';
-            } else {
-                appState.transactionTypes.forEach(type => {
-                    const typeEl = document.createElement('div');
-                    typeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
-                    typeEl.innerHTML = `
-                        <span>${type}</span>
-                        <button onclick="removeTransactionType('${type}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
-                    `;
-                    typesContainer.appendChild(typeEl);
-                });
-            }
+            appState.transactionTypes.forEach(type => {
+                const typeEl = document.createElement('div');
+                typeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
+                typeEl.innerHTML = `
+                    <span>${type}</span>
+                    <button onclick="removeTransactionType('${type}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                typesContainer.appendChild(typeEl);
+            });
 
             // Update payment modes
             const modesContainer = document.getElementById('payment-modes');
             modesContainer.innerHTML = '';
-            if (appState.paymentModes.length === 0) {
-                modesContainer.innerHTML = '<p style="color: #666; font-style: italic; padding: 10px;">No payment modes added yet. Click "Add Payment Mode" to get started.</p>';
-            } else {
-                appState.paymentModes.forEach(mode => {
-                    const modeEl = document.createElement('div');
-                    modeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
-                    modeEl.innerHTML = `
-                        <span>${mode}</span>
-                        <button onclick="removePaymentMode('${mode}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
-                    `;
-                    modesContainer.appendChild(modeEl);
-                });
-            }
-            
-            // Populate import book selector
-            const importBookSelect = document.getElementById('importBookSelect');
-            if (importBookSelect) {
-                importBookSelect.innerHTML = '';
-                if (appState.books.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'No books available - create a book first';
-                    option.disabled = true;
-                    importBookSelect.appendChild(option);
-                } else {
-                    appState.books.forEach(book => {
-                        const option = document.createElement('option');
-                        option.value = book.id;
-                        option.textContent = book.name;
-                        importBookSelect.appendChild(option);
-                    });
-                }
-            }
-            
-            // Ensure data is loaded when settings tab is shown
-            if (document.getElementById('settings-tab') && !document.getElementById('settings-tab').classList.contains('hidden')) {
-                // Force refresh the collapsible content visibility
-                setTimeout(() => {
-                    const typesContent = document.getElementById('transaction-types-content');
-                    const modesContent = document.getElementById('payment-modes-content');
-                    if (typesContent && !typesContent.classList.contains('collapsed')) {
-                        typesContent.style.display = 'block';
-                    }
-                    if (modesContent && !modesContent.classList.contains('collapsed')) {
-                        modesContent.style.display = 'block';
-                    }
-                }, 100);
-            }
+            appState.paymentModes.forEach(mode => {
+                const modeEl = document.createElement('div');
+                modeEl.style.cssText = 'padding: 8px; background: #f8f9fa; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;';
+                modeEl.innerHTML = `
+                    <span>${mode}</span>
+                    <button onclick="removePaymentMode('${mode}')" style="background: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                modesContainer.appendChild(modeEl);
+            });
         }
 
         // Modal functions
@@ -2517,14 +2211,6 @@
                 option.textContent = type;
                 categorySelect.appendChild(option);
             });
-
-            // Set default date to today
-            const dateInput = document.getElementById('transactionDate');
-            const today = new Date();
-            const todayStr = today.getFullYear() + '-' + 
-                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(today.getDate()).padStart(2, '0');
-            dateInput.value = todayStr;
 
             document.getElementById('addTransactionModal').classList.add('active');
             
@@ -2624,9 +2310,8 @@
             const description = document.getElementById('transactionDescription').value.trim();
             const paymentMode = document.getElementById('transactionPaymentMode').value;
             const category = document.getElementById('transactionCategory').value;
-            const selectedDate = document.getElementById('transactionDate').value;
             
-            if (!bookId || !amount || !description || !selectedDate) {
+            if (!bookId || !amount || !description) {
                 isInternalNavigation = false;
                 return;
             }
@@ -2639,7 +2324,7 @@
                 description: description,
                 paymentMode: paymentMode,
                 category: category,
-                date: new Date(selectedDate).toISOString()
+                date: new Date().toISOString()
             };
 
             appState.transactions.push(transaction);
@@ -2663,7 +2348,6 @@
             // Clear form
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionDescription').value = '';
-            // Date will be reset to today when modal is opened again
             
             setTimeout(() => { isInternalNavigation = false; }, 100);
         }
@@ -3007,11 +2691,13 @@
             document.getElementById('editTransactionAmount').value = formatIndianNumber(transaction.amount.toFixed(2));
             document.getElementById('editTransactionDescription').value = transaction.description;
             
-            // Format date for date input (YYYY-MM-DD)
+            // Format date for datetime-local input
             const date = new Date(transaction.date);
             const formattedDate = date.getFullYear() + '-' + 
                 String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(date.getDate()).padStart(2, '0');
+                String(date.getDate()).padStart(2, '0') + 'T' + 
+                String(date.getHours()).padStart(2, '0') + ':' + 
+                String(date.getMinutes()).padStart(2, '0');
             document.getElementById('editTransactionDate').value = formattedDate;
 
             document.getElementById('editTransactionModal').classList.add('active');
@@ -3117,182 +2803,6 @@
                 saveAppData();
                 loadSettings();
             }
-        }
-
-        // Excel Import Functions
-        function importFromExcel() {
-            const fileInput = document.getElementById('excelFileInput');
-            const bookSelect = document.getElementById('importBookSelect');
-            const progressDiv = document.getElementById('importProgress');
-            const progressBar = document.getElementById('importProgressBar');
-            const statusText = document.getElementById('importStatus');
-            
-            if (!fileInput.files[0]) {
-                alert('Please select an Excel file first.');
-                return;
-            }
-            
-            if (!bookSelect.value) {
-                alert('Please select a book to import into.');
-                return;
-            }
-            
-            const selectedBook = appState.books.find(b => b.id == bookSelect.value);
-            if (!selectedBook) {
-                alert('Selected book not found.');
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            progressDiv.style.display = 'block';
-            progressBar.style.width = '0%';
-            statusText.textContent = 'Reading file...';
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    progressBar.style.width = '30%';
-                    statusText.textContent = 'Processing data...';
-                    
-                    let workbook;
-                    if (file.name.toLowerCase().endsWith('.csv')) {
-                        // Handle CSV files
-                        const csvData = e.target.result;
-                        workbook = XLSX.read(csvData, { type: 'string' });
-                    } else {
-                        // Handle Excel files
-                        workbook = XLSX.read(e.target.result, { type: 'binary' });
-                    }
-                    
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-                    
-                    progressBar.style.width = '60%';
-                    statusText.textContent = 'Importing transactions...';
-                    
-                    processImportedTransactions(jsonData, selectedBook, progressBar, statusText);
-                    
-                } catch (error) {
-                    console.error('Error processing file:', error);
-                    statusText.textContent = 'Error processing file. Please check the format.';
-                    statusText.style.color = '#f44336';
-                }
-            };
-            
-            if (file.name.toLowerCase().endsWith('.csv')) {
-                reader.readAsText(file);
-            } else {
-                reader.readAsBinaryString(file);
-            }
-        }
-        
-        function processImportedTransactions(jsonData, selectedBook, progressBar, statusText) {
-            let imported = 0;
-            let errors = 0;
-            const total = jsonData.length;
-            
-            jsonData.forEach((row, index) => {
-                try {
-                    // Flexible column mapping - try different possible column names
-                    const date = row.Date || row.date || row.DATE || row['Transaction Date'];
-                    const description = row.Description || row.description || row.DESCRIPTION || row.Particulars || row.particulars;
-                    const amount = row.Amount || row.amount || row.AMOUNT || row.Value || row.value;
-                    const type = row.Type || row.type || row.TYPE || row['Transaction Type'] || 'expense';
-                    const category = row.Category || row.category || row.CATEGORY || 'Other';
-                    const paymentMode = row['Payment Mode'] || row.paymentMode || row['Payment Method'] || row.Method || 'Cash';
-                    
-                    if (!date || !description || !amount) {
-                        errors++;
-                        return;
-                    }
-                    
-                    // Parse date
-                    let transactionDate;
-                    if (typeof date === 'string') {
-                        transactionDate = new Date(date);
-                    } else if (typeof date === 'number') {
-                        // Excel date number
-                        transactionDate = new Date((date - 25569) * 86400 * 1000);
-                    } else {
-                        transactionDate = new Date(date);
-                    }
-                    
-                    if (isNaN(transactionDate.getTime())) {
-                        errors++;
-                        return;
-                    }
-                    
-                    // Parse amount
-                    let parsedAmount = parseFloat(String(amount).replace(/[^0-9.-]/g, ''));
-                    if (isNaN(parsedAmount)) {
-                        errors++;
-                        return;
-                    }
-                    
-                    // Determine transaction type
-                    let transactionType = 'expense'; // Default to expense
-                    if (type) {
-                        const typeStr = String(type).toLowerCase();
-                        if (typeStr.includes('income') || typeStr.includes('credit') || typeStr.includes('cashin') || typeStr.includes('cash in')) {
-                            transactionType = 'income';
-                        } else if (typeStr.includes('expense') || typeStr.includes('debit') || typeStr.includes('cashout') || typeStr.includes('cash out')) {
-                            transactionType = 'expense';
-                        }
-                    }
-                    
-                    // Make amount positive (we'll handle the sign based on type)
-                    parsedAmount = Math.abs(parsedAmount);
-                    
-                    // Create transaction
-                    const transaction = {
-                        id: Date.now() + index,
-                        bookId: selectedBook.id,
-                        type: transactionType,
-                        amount: parsedAmount,
-                        description: String(description).trim(),
-                        paymentMode: String(paymentMode || 'Cash').trim(),
-                        category: String(category || 'Other').trim(),
-                        date: transactionDate.toISOString()
-                    };
-                    
-                    // Add to transactions and update book balance
-                    appState.transactions.push(transaction);
-                    
-                    if (transaction.type === 'income') {
-                        selectedBook.balance += transaction.amount;
-                    } else {
-                        selectedBook.balance -= transaction.amount;
-                    }
-                    
-                    imported++;
-                    
-                    // Update progress
-                    const progress = Math.floor(((index + 1) / total) * 40) + 60;
-                    progressBar.style.width = progress + '%';
-                    
-                } catch (rowError) {
-                    console.error('Error processing row:', rowError);
-                    errors++;
-                }
-            });
-            
-            // Save data and refresh UI
-            saveAppData();
-            loadBooks();
-            loadTransactions();
-            
-            // Show completion message
-            progressBar.style.width = '100%';
-            statusText.textContent = `Import completed! ${imported} transactions imported${errors > 0 ? `, ${errors} errors` : ''}.`;
-            statusText.style.color = imported > 0 ? '#4CAF50' : '#f44336';
-            
-            // Hide progress after 3 seconds
-            setTimeout(() => {
-                document.getElementById('importProgress').style.display = 'none';
-                document.getElementById('excelFileInput').value = '';
-                statusText.style.color = '#333';
-            }, 3000);
         }
 
         // Utility functions
