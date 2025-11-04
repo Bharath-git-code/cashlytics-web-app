@@ -23,6 +23,124 @@
             overflow-x: hidden;
         }
         
+        /* Hide old header buttons and ensure hamburger is visible */
+        .header-actions .header-btn {
+            display: none !important;
+        }
+        
+        .hamburger-menu {
+            display: block !important;
+        }
+        
+        /* Hamburger Menu Styles */
+        .hamburger-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .hamburger-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .hamburger-line {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background-color: white;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+        
+        .hamburger-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            min-width: 150px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+        
+        .hamburger-dropdown.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .hamburger-dropdown a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .hamburger-dropdown a:last-child {
+            border-bottom: none;
+        }
+        
+        .hamburger-dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Collapsible Section Styles */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-header:hover {
+            color: #2196F3;
+        }
+        
+        .collapsible-icon {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            max-height: 1000px;
+            opacity: 1;
+        }
+        
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+        
         .app-container {
             max-width: 420px;
             margin: 0 auto;
@@ -41,6 +159,150 @@
             top: 0;
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .header-actions {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+        }
+        
+        .header-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Hamburger Menu Styles */
+        .hamburger-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1001;
+        }
+        
+        .hamburger-btn span {
+            width: 24px;
+            height: 3px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger-btn:hover span {
+            background: white;
+        }
+        
+        .hamburger-btn.active span:nth-child(1) {
+            transform: rotate(45deg) translate(7px, 7px);
+        }
+        
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger-btn.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 8px 0;
+            min-width: 160px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu a {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .dropdown-menu a:hover {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+        }
+        
+        @media (max-width: 480px) {
+            .hamburger-btn {
+                right: 15px;
+                padding: 6px;
+            }
+            
+            .hamburger-btn span {
+                width: 20px;
+                height: 2px;
+            }
+            
+            .dropdown-menu {
+                right: 15px;
+                min-width: 140px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-actions {
+                right: 10px;
+            }
+            
+            .header-btn {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
         }
         
         .logo {
@@ -599,13 +861,29 @@
             <div class="logo">💰</div>
             <h1 id="headerTitle" data-translate="app_title">Cashlytics</h1>
             <p id="headerSubtitle">Personal Finance Tracker</p>
+            
+            <!-- Header Actions -->
+            <div class="hamburger-menu" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);">
+                <button class="hamburger-button" onclick="toggleMenu()">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+                <div class="hamburger-dropdown" id="hamburgerDropdown">
+                    <a href="#" onclick="showTab('reports'); toggleMenu();" id="reports-menu" data-translate="tab_reports">📊 Reports</a>
+                    <a href="#" onclick="showTab('settings'); toggleMenu();" id="settings-menu" data-translate="tab_settings">⚙️ Settings</a>
+                    <a href="#" onclick="showTab('about'); toggleMenu();" id="about-menu" data-translate="tab_about">ℹ️ About</a>
+                </div>
+            </div>
+            <!-- Header Actions -->
+            <div class="header-actions" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); display: flex; gap: 10px;">
+                <button class="header-btn" onclick="showTab('reports')" style="background: none; border: 1px solid #ddd; padding: 8px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s;" data-translate="tab_reports">� Reports</button>
+                <button class="header-btn" onclick="showTab('settings')" style="background: none; border: 1px solid #ddd; padding: 8px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s;" data-translate="tab_settings">⚙️ Settings</button>
+            </div>
         </div>
         
         <div class="tab-bar" id="tabBar">
             <button class="tab active" onclick="showTab('books')" data-translate="tab_books">📚 Books</button>
-            <button class="tab" onclick="showTab('transactions')" data-translate="tab_transactions">💳 Transactions</button>
-            <button class="tab" onclick="showTab('reports')" data-translate="tab_reports">📊 Reports</button>
-            <button class="tab" onclick="showTab('settings')" data-translate="tab_settings">⚙️ Settings</button>
         </div>
         
         <div class="content">
@@ -794,19 +1072,29 @@
                 </div>
 
                 <div class="card">
-                    <h4 data-translate="transactionTypes">Transaction Types</h4>
-                    <div id="transaction-types">
-                        <!-- Transaction types will be loaded here -->
+                    <div class="collapsible-header" onclick="toggleCollapsible('transaction-types-content')">
+                        <h4 data-translate="transactionTypes">Transaction Types</h4>
+                        <span class="collapsible-icon">▼</span>
                     </div>
-                    <button class="btn btn-secondary" onclick="showAddTypeModal()">Add Transaction Type</button>
+                    <div id="transaction-types-content" class="collapsible-content">
+                        <div id="transaction-types">
+                            <!-- Transaction types will be loaded here -->
+                        </div>
+                        <button class="btn btn-secondary" onclick="showAddTypeModal()">Add Transaction Type</button>
+                    </div>
                 </div>
 
                 <div class="card">
-                    <h4>Payment Modes</h4>
-                    <div id="payment-modes">
-                        <!-- Payment modes will be loaded here -->
+                    <div class="collapsible-header" onclick="toggleCollapsible('payment-modes-content')">
+                        <h4 data-translate="paymentModes">Payment Modes</h4>
+                        <span class="collapsible-icon">▼</span>
                     </div>
-                    <button class="btn btn-secondary" onclick="showAddPaymentModeModal()">Add Payment Mode</button>
+                    <div id="payment-modes-content" class="collapsible-content">
+                        <div id="payment-modes">
+                            <!-- Payment modes will be loaded here -->
+                        </div>
+                        <button class="btn btn-secondary" onclick="showAddPaymentModeModal()">Add Payment Mode</button>
+                    </div>
                 </div>
                 
                 <div class="card">
@@ -867,9 +1155,42 @@
                 </div>
             </div>
         </div>
+        
+        <!-- About Tab -->
+        <div id="about-tab" class="tab-content hidden">
+            <div class="card" style="text-align: center; max-width: 600px; margin: 40px auto;">
+                <div style="font-size: 60px; margin-bottom: 20px;">💰</div>
+                <h2 data-translate="app_title">Cashlytics</h2>
+                <p style="font-size: 18px; color: #666; margin-bottom: 30px;" data-translate="about_subtitle">Personal Finance Tracker</p>
+                
+                <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 30px; border-radius: 15px; margin: 20px 0;">
+                    <h3 style="color: #333; margin-bottom: 15px;" data-translate="about_created_by">Created by</h3>
+                    <p style="font-size: 24px; font-weight: 600; color: #2196F3; margin-bottom: 10px;">Bharath</p>
+                    <p style="color: #666; font-size: 16px;" data-translate="about_message">This software was created with love to help you manage your personal finances easily and efficiently.</p>
+                </div>
+                
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #333; margin-bottom: 15px;" data-translate="about_features_title">Features</h3>
+                    <div style="text-align: left; max-width: 400px; margin: 0 auto;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0; color: #666;">📚 <span data-translate="about_feature_books">Multiple transaction books</span></li>
+                            <li style="padding: 8px 0; color: #666;">💰 <span data-translate="about_feature_tracking">Income & expense tracking</span></li>
+                            <li style="padding: 8px 0; color: #666;">📊 <span data-translate="about_feature_reports">Visual reports & analytics</span></li>
+                            <li style="padding: 8px 0; color: #666;">🌐 <span data-translate="about_feature_multilingual">Multilingual support</span></li>
+                            <li style="padding: 8px 0; color: #666;">📱 <span data-translate="about_feature_pwa">Works offline as PWA</span></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px;">
+                    <p style="font-size: 24px; margin-bottom: 10px;">🎉</p>
+                    <p style="color: #2196F3; font-size: 18px; font-weight: 600;" data-translate="about_enjoy">Have fun managing your finances!</p>
+                    <p style="color: #999; font-size: 14px; margin-top: 20px;" data-translate="about_version">Version 2.0</p>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <button class="fab" onclick="showAddTransactionModal()">+</button>
 
     <!-- Modals -->
     <!-- Add Book Modal -->
@@ -919,7 +1240,7 @@
                 </div>
                 <div class="form-group">
                     <label data-translate="amount">Amount</label>
-                    <input type="number" id="transactionAmount" required step="0.01" placeholder="0.00" data-translate="amount">
+                    <input type="text" id="transactionAmount" required placeholder="0.00" data-translate="amount" inputmode="decimal">
                 </div>
                 <div class="form-group">
                     <label data-translate="description">Description</label>
@@ -936,6 +1257,13 @@
                     <select id="transactionCategory" required>
                         <!-- Categories will be populated here -->
                     </select>
+                </div>
+                <div class="form-group">
+                    <label data-translate="transactionDate">Date</label>
+                    <input type="date" id="transactionDate" required>
+                    <small style="color: #666; font-size: 12px;" data-translate="dateHelper">
+                        📅 Select the date when this transaction occurred
+                    </small>
                 </div>
                 <button type="submit" class="btn" data-translate="addTransactionBtn">Add Transaction</button>
             </form>
@@ -1000,7 +1328,7 @@
                 </div>
                 <div class="form-group">
                     <label>Amount</label>
-                    <input type="number" id="editTransactionAmount" required step="0.01" placeholder="0.00">
+                    <input type="text" id="editTransactionAmount" required placeholder="0.00" inputmode="decimal">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
@@ -1019,8 +1347,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="datetime-local" id="editTransactionDate" required>
+                    <label data-translate="transactionDate">Date</label>
+                    <input type="date" id="editTransactionDate" required>
+                    <small style="color: #666; font-size: 12px;" data-translate="dateHelper">
+                        📅 Select the date when this transaction occurred
+                    </small>
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button type="submit" class="btn" style="flex: 1;">Update Transaction</button>
@@ -1095,6 +1426,8 @@
                 paymentMode: 'Payment Mode',
                 allModes: 'All Modes',
                 category: 'Category',
+                transactionDate: 'Date',
+                dateHelper: '📅 Select the date when this transaction occurred',
                 allCategories: 'All Categories',
                 applyFilters: 'Apply Filters',
                 clearFilters: 'Clear Filters',
@@ -1123,6 +1456,7 @@
                 english: 'English',
                 kannada: 'ಕನ್ನಡ (Kannada)',
                 transactionTypes: 'Transaction Types',
+                paymentModes: 'Payment Modes',
                 addTransactionType: 'Add Transaction Type',
                 paymentModes: 'Payment Modes',
                 addPaymentMode: 'Add Payment Mode',
@@ -1185,7 +1519,22 @@
                 tab_books: '📚 Books',
                 tab_transactions: '💳 Transactions', 
                 tab_reports: '📊 Reports',
-                tab_settings: '⚙️ Settings'
+                tab_settings: '⚙️ Settings',
+                tab_about: 'ℹ️ About',
+                tab_about: 'ℹ️ About',
+                
+                // About page
+                about_subtitle: 'Personal Finance Tracker',
+                about_created_by: 'Created by',
+                about_message: 'This software was created with love to help you manage your personal finances easily and efficiently.',
+                about_features_title: 'Features',
+                about_feature_books: 'Multiple transaction books',
+                about_feature_tracking: 'Income & expense tracking',
+                about_feature_reports: 'Visual reports & analytics',
+                about_feature_multilingual: 'Multilingual support',
+                about_feature_pwa: 'Works offline as PWA',
+                about_enjoy: 'Have fun managing your finances!',
+                about_version: 'Version 2.0'
             },
             
             kn: {
@@ -1221,6 +1570,8 @@
                 paymentMode: 'ಪಾವತಿ ವಿಧಾನ',
                 allModes: 'ಎಲ್ಲಾ ವಿಧಾನಗಳು',
                 category: 'ವರ್ಗ',
+                transactionDate: 'ದಿನಾಂಕ',
+                dateHelper: '📅 ಈ ವಹಿವಾಟು ನಡೆದ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
                 allCategories: 'ಎಲ್ಲಾ ವರ್ಗಗಳು',
                 applyFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಿ',
                 clearFilters: 'ಫಿಲ್ಟರ್‌ಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ',
@@ -1249,6 +1600,7 @@
                 english: 'English',
                 kannada: 'ಕನ್ನಡ (Kannada)',
                 transactionTypes: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರಗಳು',
+                paymentModes: 'ಪಾವತಿ ವಿಧಾನಗಳು',
                 addTransactionType: 'ವಹಿವಾಟಿನ ಪ್ರಕಾರವನ್ನು ಸೇರಿಸಿ',
                 paymentModes: 'ಪಾವತಿ ವಿಧಾನಗಳು',
                 addPaymentMode: 'ಪಾವತಿ ವಿಧಾನವನ್ನು ಸೇರಿಸಿ',
@@ -1311,7 +1663,21 @@
                 tab_books: '📚 ಪುಸ್ತಕಗಳು',
                 tab_transactions: '💳 ವಹಿವಾಟುಗಳು',
                 tab_reports: '📊 ವರದಿಗಳು',
-                tab_settings: '⚙️ ಸೆಟ್ಟಿಂಗ್‌ಗಳು'
+                tab_settings: '⚙️ ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+                tab_about: 'ℹ️ ಬಗ್ಗೆ',
+                
+                // About page
+                about_subtitle: 'ವೈಯಕ್ತಿಕ ಹಣಕಾಸು ಟ್ರ್ಯಾಕರ್',
+                about_created_by: 'ರಚಿಸಿದವರು',
+                about_message: 'ಈ ಸಾಫ್ಟ್‌ವೇರ್ ಅನ್ನು ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಹಣಕಾಸುಗಳನ್ನು ಸುಲಭವಾಗಿ ಮತ್ತು ಪರಿಣಾಮಕಾರಿಯಾಗಿ ನಿರ್ವಹಿಸಲು ಸಹಾಯ ಮಾಡಲು ಪ್ರೀತಿಯಿಂದ ರಚಿಸಲಾಗಿದೆ.',
+                about_features_title: 'ವೈಶಿಷ್ಟ್ಯಗಳು',
+                about_feature_books: 'ಬಹು ವಹಿವಾಟು ಪುಸ್ತಕಗಳು',
+                about_feature_tracking: 'ಆದಾಯ ಮತ್ತು ಖರ್ಚು ಟ್ರ್ಯಾಕಿಂಗ್',
+                about_feature_reports: 'ದೃಶ್ಯ ವರದಿಗಳು ಮತ್ತು ವಿಶ್ಲೇಷಣೆ',
+                about_feature_multilingual: 'ಬಹುಭಾಷಾ ಬೆಂಬಲ',
+                about_feature_pwa: 'PWA ಆಗಿ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ',
+                about_enjoy: 'ನಿಮ್ಮ ಹಣಕಾಸು ನಿರ್ವಹಣೆಯಲ್ಲಿ ಆನಂದಿಸಿ!',
+                about_version: 'ಆವೃತ್ತಿ 2.0'
             }
         };
 
@@ -1461,6 +1827,87 @@
             })}`;
         }
 
+        // Format number with Indian comma system for input fields
+        function formatIndianNumber(value) {
+            // Remove all non-digit and non-decimal characters
+            const cleanValue = value.replace(/[^\d.]/g, '');
+            
+            // Handle decimal places
+            const parts = cleanValue.split('.');
+            let integerPart = parts[0];
+            const decimalPart = parts[1];
+            
+            // Apply Indian number formatting
+            if (integerPart.length > 3) {
+                const lastThree = integerPart.slice(-3);
+                const remaining = integerPart.slice(0, -3);
+                integerPart = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + lastThree;
+            }
+            
+            return decimalPart !== undefined ? integerPart + '.' + decimalPart : integerPart;
+        }
+
+        // Parse Indian formatted number back to plain number
+        function parseIndianNumber(formattedValue) {
+            return parseFloat(formattedValue.replace(/,/g, '')) || 0;
+        }
+
+        // Setup amount input formatting
+        function setupAmountFormatting(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            
+            input.addEventListener('input', function(e) {
+                const cursorPosition = e.target.selectionStart;
+                const oldValue = e.target.value;
+                const newValue = formatIndianNumber(oldValue);
+                
+                if (newValue !== oldValue) {
+                    e.target.value = newValue;
+                    // Adjust cursor position after formatting
+                    const diff = newValue.length - oldValue.length;
+                    e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+                }
+            });
+            
+            input.addEventListener('blur', function(e) {
+                // Ensure proper decimal formatting on blur
+                const value = parseIndianNumber(e.target.value);
+                if (value > 0) {
+                    e.target.value = formatIndianNumber(value.toFixed(2));
+                }
+            });
+        }
+
+        // Hamburger menu toggle
+        function toggleMenu() {
+            const dropdown = document.getElementById('hamburgerDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close hamburger menu when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.hamburger-button') && !event.target.closest('.hamburger-button')) {
+                const dropdowns = document.getElementsByClassName('hamburger-dropdown');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Collapsible functionality
+        function toggleCollapsible(contentId) {
+            const content = document.getElementById(contentId);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.collapsible-icon');
+            
+            content.classList.toggle('collapsed');
+            icon.classList.toggle('collapsed');
+        }
+
         // Tab switching
         function showTab(tabName, addToHistory = true) {
             console.log('Switching to tab:', tabName);
@@ -1468,14 +1915,33 @@
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            // document.querySelectorAll('.header-btn').forEach(btn => btn.classList.remove('active'));
             
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.remove('hidden');
             
-            // Update active tab in tab bar
-            const tabButton = document.querySelector(`[onclick*="showTab('${tabName}')"]`);
-            if (tabButton) {
-                tabButton.classList.add('active');
+            // Handle tab bar visibility and navigation
+            const tabBar = document.getElementById('tabBar');
+            const backBtn = document.getElementById('backBtn');
+            
+            if (tabName === 'books') {
+                // Home page - show tab bar, hide back button
+                tabBar.style.display = 'flex';
+                backBtn.classList.add('hidden');
+                // Update active tab in tab bar
+                const tabButton = document.querySelector(`[onclick*="showTab('${tabName}')"]`);
+                if (tabButton) {
+                    tabButton.classList.add('active');
+                }
+            } else {
+                // Reports/Settings - hide tab bar, show back button
+                tabBar.style.display = 'none';
+                backBtn.classList.remove('hidden');
+                // Update active header button
+                // const headerButton = document.querySelector(`[onclick*="showTab('${tabName}')"].header-btn`);
+                // if (headerButton) {
+                //     headerButton.classList.add('active');
+                // }
             }
             
             // Refresh data for specific tabs
@@ -1531,6 +1997,9 @@
                     break;
                 case 'settings':
                     loadSettings();
+                    break;
+                case 'about':
+                    // About tab content is already in HTML, no special loading needed
                     break;
             }
         }
@@ -1686,13 +2155,37 @@
             
             if (appState.currentBook) {
                 transactionsToShow = appState.transactions.filter(t => t.bookId === appState.currentBook.id);
-                header.innerHTML = `<h3>Transactions - ${appState.currentBook.name}</h3>`;
-            } else {
-                header.innerHTML = '<h3>All Transactions</h3>';
             }
             
             // Apply filters
             transactionsToShow = applyTransactionFilters(transactionsToShow);
+            
+            // Calculate total balance for filtered transactions
+            const totalBalance = transactionsToShow.reduce((sum, t) => {
+                return sum + (t.type === 'income' ? t.amount : -t.amount);
+            }, 0);
+            
+            const balanceClass = totalBalance > 0 ? 'positive' : totalBalance < 0 ? 'negative' : 'neutral';
+            
+            if (appState.currentBook) {
+                header.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3>Transactions - ${appState.currentBook.name}</h3>
+                        <div class="balance ${balanceClass}" style="font-size: 18px; font-weight: bold;">
+                            Total: ${formatCurrency(totalBalance)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                header.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3>All Transactions</h3>
+                        <div class="balance ${balanceClass}" style="font-size: 18px; font-weight: bold;">
+                            Total: ${formatCurrency(totalBalance)}
+                        </div>
+                    </div>
+                `;
+            }
             
             container.innerHTML = '';
             
@@ -1909,7 +2402,18 @@
                 categorySelect.appendChild(option);
             });
 
+            // Set default date to today
+            const dateInput = document.getElementById('transactionDate');
+            const today = new Date();
+            const todayStr = today.getFullYear() + '-' + 
+                String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(today.getDate()).padStart(2, '0');
+            dateInput.value = todayStr;
+
             document.getElementById('addTransactionModal').classList.add('active');
+            
+            // Setup amount formatting for this modal
+            setupAmountFormatting('transactionAmount');
         }
 
         function showAddTypeModal() {
@@ -2000,12 +2504,13 @@
             
             const bookId = parseInt(document.getElementById('transactionBook').value);
             const type = document.getElementById('transactionType').value;
-            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const amount = parseIndianNumber(document.getElementById('transactionAmount').value);
             const description = document.getElementById('transactionDescription').value.trim();
             const paymentMode = document.getElementById('transactionPaymentMode').value;
             const category = document.getElementById('transactionCategory').value;
+            const selectedDate = document.getElementById('transactionDate').value;
             
-            if (!bookId || !amount || !description) {
+            if (!bookId || !amount || !description || !selectedDate) {
                 isInternalNavigation = false;
                 return;
             }
@@ -2018,7 +2523,7 @@
                 description: description,
                 paymentMode: paymentMode,
                 category: category,
-                date: new Date().toISOString()
+                date: new Date(selectedDate).toISOString()
             };
 
             appState.transactions.push(transaction);
@@ -2042,6 +2547,7 @@
             // Clear form
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionDescription').value = '';
+            // Date will be reset to today when modal is opened again
             
             setTimeout(() => { isInternalNavigation = false; }, 100);
         }
@@ -2382,19 +2888,20 @@
 
             // Fill form fields
             document.getElementById('editTransactionType').value = transaction.type;
-            document.getElementById('editTransactionAmount').value = transaction.amount;
+            document.getElementById('editTransactionAmount').value = formatIndianNumber(transaction.amount.toFixed(2));
             document.getElementById('editTransactionDescription').value = transaction.description;
             
-            // Format date for datetime-local input
+            // Format date for date input (YYYY-MM-DD)
             const date = new Date(transaction.date);
             const formattedDate = date.getFullYear() + '-' + 
                 String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(date.getDate()).padStart(2, '0') + 'T' + 
-                String(date.getHours()).padStart(2, '0') + ':' + 
-                String(date.getMinutes()).padStart(2, '0');
+                String(date.getDate()).padStart(2, '0');
             document.getElementById('editTransactionDate').value = formattedDate;
 
             document.getElementById('editTransactionModal').classList.add('active');
+            
+            // Setup amount formatting for this modal
+            setupAmountFormatting('editTransactionAmount');
         }
 
         function updateTransaction(event) {
@@ -2406,7 +2913,7 @@
             
             const bookId = parseInt(document.getElementById('editTransactionBook').value);
             const type = document.getElementById('editTransactionType').value;
-            const amount = parseFloat(document.getElementById('editTransactionAmount').value);
+            const amount = parseIndianNumber(document.getElementById('editTransactionAmount').value);
             const description = document.getElementById('editTransactionDescription').value.trim();
             const paymentMode = document.getElementById('editTransactionPaymentMode').value;
             const category = document.getElementById('editTransactionCategory').value;
