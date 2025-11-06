@@ -758,15 +758,36 @@
         .transaction-actions {
             display: flex;
             align-items: center;
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 1001 !important;
+            pointer-events: auto !important;
+            gap: 15px;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            width: auto;
+            max-width: 90vw;
         }
         
         .transaction-actions button {
             min-width: 100px;
             white-space: nowrap;
+            position: relative;
+            z-index: 1002;
+            pointer-events: auto;
+            touch-action: manipulation;
         }
         
         .filter-row {
             margin-bottom: 10px;
+        }
+        
+        /* Ensure transactions tab has proper spacing for fixed buttons */
+        #transactions-tab.tab-content {
+            padding-bottom: 120px;
         }
         
         .filter-row:last-child {
@@ -873,6 +894,22 @@
             
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .transaction-actions {
+                bottom: 15px !important;
+                gap: 10px !important;
+                max-width: 95vw !important;
+            }
+            
+            .transaction-actions button {
+                padding: 10px 16px !important;
+                font-size: 14px !important;
+                min-width: 80px !important;
+            }
+            
+            #transactions-tab.tab-content {
+                padding-bottom: 100px !important;
             }
         }
     </style>
@@ -984,16 +1021,6 @@
                 
                 <div id="transactions-list">
                     <!-- Transactions will be loaded here -->
-                </div>
-                
-                <!-- Cash In/Out Buttons (shown only when viewing transactions) -->
-                <div id="transaction-action-buttons" class="transaction-actions" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 1000;">
-                    <button class="btn btn-success" onclick="showAddTransactionModal('income')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);" data-translate="cashIn">
-                        💰 Cash In
-                    </button>
-                    <button class="btn btn-danger" onclick="showAddTransactionModal('expense')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);" data-translate="cashOut">
-                        💸 Cash Out
-                    </button>
                 </div>
             </div>
             
@@ -1244,6 +1271,16 @@
                 </div>
             </div>
         </div>
+    </div>
+    
+    <!-- Cash In/Out Buttons (shown only when viewing transactions) -->
+    <div id="transaction-action-buttons" class="transaction-actions" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 1001; pointer-events: auto;">
+        <button class="btn btn-success" onclick="showAddTransactionModal('income')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); position: relative; z-index: 1002;" data-translate="cashIn">
+            💰 Cash In
+        </button>
+        <button class="btn btn-danger" onclick="showAddTransactionModal('expense')" style="border-radius: 25px; padding: 12px 20px; box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4); position: relative; z-index: 1002;" data-translate="cashOut">
+            💸 Cash Out
+        </button>
     </div>
     
 
