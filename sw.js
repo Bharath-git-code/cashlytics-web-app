@@ -129,7 +129,7 @@ self.addEventListener("notificationclick", (event) => {
 // Handle background sync for data backup
 self.addEventListener("sync", (event) => {
   console.log("🔄 Background sync triggered:", event.tag);
-  
+
   if (event.tag === "backup-sync") {
     event.waitUntil(performBackgroundBackup());
   } else if (event.tag === "background-sync") {
@@ -144,20 +144,20 @@ self.addEventListener("sync", (event) => {
 async function performBackgroundBackup() {
   try {
     console.log("🔄 Attempting background backup...");
-    
+
     // Send message to app to trigger backup
     const clients = await self.clients.matchAll();
-    
+
     if (clients.length > 0) {
       // App is open - let it handle the backup
       clients[0].postMessage({
-        type: 'BACKGROUND_BACKUP_REQUEST'
+        type: "BACKGROUND_BACKUP_REQUEST",
       });
       console.log("✅ Backup request sent to app");
     } else {
       // App is closed - limited backup capability
       console.log("ℹ️ App closed - background backup limited");
-      
+
       // We could potentially access IndexedDB here for basic backup
       // but for now, we'll just log and wait for next app open
     }

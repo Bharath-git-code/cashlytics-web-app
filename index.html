@@ -4033,15 +4033,25 @@
                     // Store the directory handle for future use
                     await this.storeDirectoryHandle(dirHandle);
                     
+                    console.log('✅ Backup folder selected:', dirHandle.name);
+                    
                     // Show success message
                     if (window.showToast) {
-                        showToast('📁 Backup folder selected successfully');
+                        showToast(`📁 Backup folder selected: ${dirHandle.name}`);
+                    }
+                    
+                    // Update UI immediately
+                    if (window.updateBackupStatus) {
+                        updateBackupStatus();
                     }
                     
                     return dirHandle;
                 } catch (error) {
                     if (error.name !== 'AbortError') {
                         console.error('Failed to select backup folder:', error);
+                        if (window.showToast) {
+                            showToast('❌ Failed to select backup folder');
+                        }
                     }
                     return null;
                 }
@@ -4049,17 +4059,20 @@
 
             async storeDirectoryHandle(dirHandle) {
                 try {
-                    // We can't directly serialize directory handles
-                    // So we'll store a flag and rely on the browser's permission persistence
+                    // Store basic info in localStorage
                     localStorage.setItem('cashlytics_backup_folder_selected', 'true');
                     localStorage.setItem('cashlytics_backup_folder_name', dirHandle.name);
                     
-                    // Store handle reference (browser-specific)
+                    console.log('📁 Stored folder info:', dirHandle.name);
+                    
+                    // Store handle reference in IndexedDB (for supported browsers)
                     if ('indexedDB' in window) {
                         await this.storeHandleInIndexedDB(dirHandle);
+                        console.log('💾 Directory handle stored in IndexedDB');
                     }
                 } catch (error) {
                     console.error('Failed to store directory handle:', error);
+                    // Even if IndexedDB fails, we have localStorage backup
                 }
             }
 
@@ -4249,13 +4262,15 @@
             }
 
             getBackupFolderStatus() {
-                const isSelected = localStorage.getItem('cashlytics_backup_folder_selected');
+                const isSelected = localStorage.getItem('cashlytics_backup_folder_selected') === 'true';
                 const folderName = localStorage.getItem('cashlytics_backup_folder_name');
                 
+                console.log('📁 Checking backup folder status:', { isSelected, folderName });
+                
                 if (isSelected && folderName) {
-                    return `📁 Folder: ${folderName}`;
+                    return `📁 Selected: ${folderName}`;
                 } else if ('showDirectoryPicker' in window) {
-                    return '📁 No folder selected (will prompt on first backup)';
+                    return '❌ No folder selected';
                 } else {
                     return '📁 Downloads folder (File System API not supported)';
                 }
@@ -4304,6 +4319,8 @@
             const settings = autoBackupManager.getBackupSettings();
             const status = autoBackupManager.getBackupStatus();
             const folderStatus = autoBackupManager.getBackupFolderStatus();
+            
+            console.log('🔄 Updating backup status:', { settings, status, folderStatus });
             
             statusElement.innerHTML = `
                 <div style="margin-bottom: 5px;">${status}</div>
