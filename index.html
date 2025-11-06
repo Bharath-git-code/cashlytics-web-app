@@ -1208,6 +1208,45 @@
                 </div>
                 
                 <div class="card">
+                    <h4>🔄 Automatic Backup (PWA)</h4>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
+                        📱 <strong>Smart Auto-Backup:</strong> Automatically saves your data to Downloads folder every 24 hours when using the app.
+                    </p>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="enableAutoBackup" checked onchange="toggleAutoBackup(this.checked)">
+                            <span>Enable automatic daily backups</span>
+                        </label>
+                    </div>
+                    
+                    <div id="autoBackupStatus" style="padding: 10px; background: #f0f8ff; border-radius: 8px; font-size: 14px; margin-bottom: 15px;">
+                        <div style="font-weight: 600; color: #2196F3;">📊 Backup Status</div>
+                        <div id="backupStatusText">Checking backup status...</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button class="btn" onclick="forceAutoBackup()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #4CAF50, #388e3c);">
+                            📱 Backup Now
+                        </button>
+                        <button class="btn btn-secondary" onclick="setupBackupFolder()" style="padding: 12px; font-size: 14px;">
+                            📁 Select Folder
+                        </button>
+                    </div>
+                    
+                    <div style="font-size: 12px; color: #666; line-height: 1.4;">
+                        <strong>How it works:</strong><br>
+                        • Backups replace same file: <code>cashlytics-backup.json</code><br>
+                        • Saves to dedicated "cashlytic-backup" folder<br>
+                        • Works even when you switch between apps<br>
+                        • No internet required • No Downloads spam<br>
+                        <button onclick="showBackupSettings()" style="background: none; border: none; color: #2196F3; cursor: pointer; padding: 0; margin-top: 5px; text-decoration: underline;">
+                            ⚙️ Advanced Settings
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
                     <h4>Data Management</h4>
                     <p style="font-size: 14px; color: #666; margin-bottom: 15px;">
                         💡 <strong>Cross-browser sync:</strong> Export your data to share between different browsers or devices.
@@ -1480,7 +1519,10 @@
             transactionTypes: 'cashlytics_types_v2',
             paymentModes: 'cashlytics_payment_modes_v2',
             settings: 'cashlytics_settings_v2',
-            lastBackup: 'cashlytics_last_backup'
+            lastBackup: 'cashlytics_last_backup',
+            lastFileBackup: 'cashlytics_last_file_backup',
+            autoBackupEnabled: 'cashlytics_auto_backup_enabled',
+            backupSettings: 'cashlytics_backup_settings'
         };
 
         // Language translations
@@ -1823,12 +1865,27 @@
                 }
             }, 10);
             
-            // Auto-backup every 24 hours
+            // Auto-backup every 24 hours (legacy)
             checkAutoBackup();
+            
+            // Initialize PWA Auto-Backup Manager
+            setTimeout(() => {
+                autoBackupManager = new PWAAutoBackupManager();
+            }, 2000); // Wait 2 seconds for app to fully initialize
             
             // Register service worker for PWA
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').catch(console.error);
+                
+                // Listen for messages from service worker
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data.type === 'BACKGROUND_BACKUP_REQUEST') {
+                        console.log('🔄 Background backup requested by service worker');
+                        if (autoBackupManager) {
+                            autoBackupManager.performSmartBackup();
+                        }
+                    }
+                });
             }
             
             console.log('App initialization complete');
@@ -2537,6 +2594,11 @@
                     }
                 }, 100);
             }
+            
+            // Update auto-backup status
+            setTimeout(() => {
+                updateBackupStatus();
+            }, 200);
         }
 
         // Modal functions
@@ -3760,6 +3822,532 @@
                     notification.remove();
                 }
             }, 10000);
+        }
+
+        // PWA Auto-Backup Manager
+        class PWAAutoBackupManager {
+            constructor() {
+                this.isEnabled = this.getBackupSettings().enabled;
+                this.backupInterval = 24 * 60 * 60 * 1000; // 24 hours
+                this.checkInterval = 30 * 60 * 1000; // Check every 30 minutes
+                this.init();
+            }
+
+            init() {
+                if (!this.isEnabled) return;
+                
+                console.log('🔄 PWA Auto-Backup Manager initialized');
+                
+                // Immediate backup check on app start
+                this.performSmartBackup();
+                
+                // Setup multiple trigger points
+                this.setupTriggers();
+                
+                // Register background sync if supported
+                this.registerBackgroundSync();
+            }
+
+            getBackupSettings() {
+                const defaultSettings = {
+                    enabled: true,
+                    maxBackups: 7,
+                    notifyUser: true
+                };
+                
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEYS.backupSettings);
+                    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+                } catch {
+                    return defaultSettings;
+                }
+            }
+
+            saveBackupSettings(settings) {
+                localStorage.setItem(STORAGE_KEYS.backupSettings, JSON.stringify(settings));
+                this.isEnabled = settings.enabled;
+            }
+
+            setupTriggers() {
+                // Check periodically while app is active
+                this.intervalId = setInterval(() => {
+                    if (document.visibilityState === 'visible') {
+                        this.performSmartBackup();
+                    }
+                }, this.checkInterval);
+
+                // Backup when app becomes hidden/inactive
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        this.performSmartBackup();
+                    }
+                });
+
+                // Backup before page unload
+                window.addEventListener('beforeunload', () => {
+                    this.performSmartBackup();
+                });
+
+                // Backup when app loses focus
+                window.addEventListener('blur', () => {
+                    this.performSmartBackup();
+                });
+
+                // Backup after significant data changes
+                this.hookDataChanges();
+            }
+
+            hookDataChanges() {
+                // Override saveAppData to trigger backup check after data changes
+                const originalSaveAppData = window.saveAppData;
+                window.saveAppData = () => {
+                    const result = originalSaveAppData();
+                    // Small delay to ensure data is saved first
+                    setTimeout(() => this.performSmartBackup(), 1000);
+                    return result;
+                };
+            }
+
+            async registerBackgroundSync() {
+                if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+                    try {
+                        const registration = await navigator.serviceWorker.ready;
+                        await registration.sync.register('backup-sync');
+                        console.log('🔄 Background sync registered for backup');
+                    } catch (error) {
+                        console.log('Background sync not supported:', error.message);
+                    }
+                }
+            }
+
+            performSmartBackup() {
+                if (!this.isEnabled || !this.shouldBackup()) return;
+
+                try {
+                    this.createFileBackup();
+                    this.updateLastBackupTime();
+                    
+                    const settings = this.getBackupSettings();
+                    if (settings.notifyUser) {
+                        this.showBackupNotification();
+                    }
+                    
+                    console.log('✅ Auto-backup completed successfully');
+                } catch (error) {
+                    console.error('❌ Auto-backup failed:', error);
+                }
+            }
+
+            shouldBackup() {
+                const lastBackup = localStorage.getItem(STORAGE_KEYS.lastFileBackup);
+                if (!lastBackup) return true;
+
+                const timeSinceBackup = Date.now() - parseInt(lastBackup);
+                return timeSinceBackup >= this.backupInterval;
+            }
+
+            createFileBackup() {
+                const timestamp = new Date().toISOString().split('T')[0];
+                const timeStr = new Date().toLocaleTimeString('en-GB', { 
+                    hour12: false, 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                const filename = `cashlytics-backup.json`; // Single file name
+
+                const backupData = {
+                    books: appState.books,
+                    transactions: appState.transactions,
+                    transactionTypes: appState.transactionTypes,
+                    paymentModes: appState.paymentModes,
+                    settings: appState.settings,
+                    metadata: {
+                        exportDate: new Date().toISOString(),
+                        version: '2.1',
+                        type: 'auto-backup',
+                        deviceInfo: navigator.userAgent,
+                        backupNumber: this.getNextBackupNumber()
+                    }
+                };
+
+                this.saveToBackupFolder(JSON.stringify(backupData, null, 2), filename);
+            }
+
+            async saveToBackupFolder(data, filename) {
+                try {
+                    // Try File System Access API first (works on Brave Android PWA)
+                    if ('showDirectoryPicker' in window) {
+                        await this.saveWithFileSystemAPI(data, filename);
+                    } else {
+                        // Fallback to Downloads folder with folder prefix
+                        this.downloadToFolderName(data, filename);
+                    }
+                } catch (error) {
+                    console.error('Failed to save to backup folder:', error);
+                    // Ultimate fallback - regular download
+                    this.downloadBackup(data, filename);
+                }
+            }
+
+            async saveWithFileSystemAPI(data, filename) {
+                try {
+                    // Check if we have a stored directory handle
+                    let dirHandle = await this.getStoredDirectoryHandle();
+                    
+                    if (!dirHandle) {
+                        // First time - ask user to select/create folder
+                        dirHandle = await this.selectBackupFolder();
+                        if (!dirHandle) return;
+                    }
+
+                    // Verify directory still exists and we have permission
+                    if ((await dirHandle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
+                        if ((await dirHandle.requestPermission({ mode: 'readwrite' })) !== 'granted') {
+                            throw new Error('Permission denied');
+                        }
+                    }
+
+                    // Create or overwrite the backup file
+                    const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(data);
+                    await writable.close();
+
+                    console.log('✅ Backup saved to cashlytic-backup folder');
+                    
+                } catch (error) {
+                    console.error('File System API failed:', error);
+                    // Clear stored handle if it's invalid
+                    localStorage.removeItem('cashlytics_backup_folder_handle');
+                    throw error;
+                }
+            }
+
+            async selectBackupFolder() {
+                try {
+                    const dirHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite',
+                        startIn: 'downloads'
+                    });
+
+                    // Store the directory handle for future use
+                    await this.storeDirectoryHandle(dirHandle);
+                    
+                    // Show success message
+                    if (window.showToast) {
+                        showToast('📁 Backup folder selected successfully');
+                    }
+                    
+                    return dirHandle;
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Failed to select backup folder:', error);
+                    }
+                    return null;
+                }
+            }
+
+            async storeDirectoryHandle(dirHandle) {
+                try {
+                    // We can't directly serialize directory handles
+                    // So we'll store a flag and rely on the browser's permission persistence
+                    localStorage.setItem('cashlytics_backup_folder_selected', 'true');
+                    localStorage.setItem('cashlytics_backup_folder_name', dirHandle.name);
+                    
+                    // Store handle reference (browser-specific)
+                    if ('indexedDB' in window) {
+                        await this.storeHandleInIndexedDB(dirHandle);
+                    }
+                } catch (error) {
+                    console.error('Failed to store directory handle:', error);
+                }
+            }
+
+            async storeHandleInIndexedDB(dirHandle) {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('CashlyticsBackup', 1);
+                    
+                    request.onerror = () => reject(request.error);
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('handles')) {
+                            db.createObjectStore('handles');
+                        }
+                    };
+                    
+                    request.onsuccess = (event) => {
+                        const db = event.target.result;
+                        const transaction = db.transaction(['handles'], 'readwrite');
+                        const store = transaction.objectStore('handles');
+                        
+                        store.put(dirHandle, 'backupFolder');
+                        
+                        transaction.oncomplete = () => {
+                            db.close();
+                            resolve();
+                        };
+                        
+                        transaction.onerror = () => {
+                            db.close();
+                            reject(transaction.error);
+                        };
+                    };
+                });
+            }
+
+            async getStoredDirectoryHandle() {
+                try {
+                    if (!localStorage.getItem('cashlytics_backup_folder_selected')) {
+                        return null;
+                    }
+
+                    // Try to get from IndexedDB
+                    return await this.getHandleFromIndexedDB();
+                } catch (error) {
+                    console.error('Failed to get stored directory handle:', error);
+                    return null;
+                }
+            }
+
+            async getHandleFromIndexedDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('CashlyticsBackup', 1);
+                    
+                    request.onerror = () => resolve(null);
+                    
+                    request.onsuccess = (event) => {
+                        const db = event.target.result;
+                        
+                        if (!db.objectStoreNames.contains('handles')) {
+                            db.close();
+                            resolve(null);
+                            return;
+                        }
+                        
+                        const transaction = db.transaction(['handles'], 'readonly');
+                        const store = transaction.objectStore('handles');
+                        const getRequest = store.get('backupFolder');
+                        
+                        getRequest.onsuccess = () => {
+                            db.close();
+                            resolve(getRequest.result || null);
+                        };
+                        
+                        getRequest.onerror = () => {
+                            db.close();
+                            resolve(null);
+                        };
+                    };
+                });
+            }
+
+            downloadToFolderName(data, filename) {
+                // Create filename with folder prefix for browsers that don't support File System API
+                const folderPrefixedName = `cashlytic-backup_${filename}`;
+                this.downloadBackup(data, folderPrefixedName);
+            }
+
+            getNextBackupNumber() {
+                const currentNumber = parseInt(localStorage.getItem('cashlytics_backup_number') || '0');
+                const nextNumber = currentNumber + 1;
+                localStorage.setItem('cashlytics_backup_number', nextNumber.toString());
+                return nextNumber;
+            }
+
+            downloadBackup(data, filename) {
+                try {
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.style.display = 'none';
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up the URL object
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                } catch (error) {
+                    console.error('Failed to create backup file:', error);
+                    throw error;
+                }
+            }
+
+            updateLastBackupTime() {
+                localStorage.setItem(STORAGE_KEYS.lastFileBackup, Date.now().toString());
+            }
+
+            showBackupNotification() {
+                if (window.showToast) {
+                    showToast('📱 Auto-backup saved to Downloads');
+                } else {
+                    console.log('📱 Auto-backup completed');
+                }
+            }
+
+            getBackupStatus() {
+                const lastBackup = localStorage.getItem(STORAGE_KEYS.lastFileBackup);
+                if (!lastBackup) {
+                    return 'No automatic backups yet';
+                }
+
+                const backupDate = new Date(parseInt(lastBackup));
+                const now = new Date();
+                const hoursSince = Math.floor((now - backupDate) / (1000 * 60 * 60));
+                
+                if (hoursSince < 1) {
+                    return 'Last backup: Less than an hour ago';
+                } else if (hoursSince < 24) {
+                    return `Last backup: ${hoursSince} hours ago`;
+                } else {
+                    const daysSince = Math.floor(hoursSince / 24);
+                    return `Last backup: ${daysSince} days ago`;
+                }
+            }
+
+            enableAutoBackup() {
+                const settings = this.getBackupSettings();
+                settings.enabled = true;
+                this.saveBackupSettings(settings);
+                this.init();
+            }
+
+            disableAutoBackup() {
+                const settings = this.getBackupSettings();
+                settings.enabled = false;
+                this.saveBackupSettings(settings);
+                
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                }
+            }
+
+            forceBackup() {
+                this.createFileBackup();
+                this.updateLastBackupTime();
+                this.showBackupNotification();
+            }
+
+            async setupBackupFolder() {
+                try {
+                    if ('showDirectoryPicker' in window) {
+                        await this.selectBackupFolder();
+                        return true;
+                    } else {
+                        showToast('ℹ️ File System API not supported. Backups will use Downloads folder.');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Failed to setup backup folder:', error);
+                    showToast('❌ Failed to setup backup folder');
+                    return false;
+                }
+            }
+
+            getBackupFolderStatus() {
+                const isSelected = localStorage.getItem('cashlytics_backup_folder_selected');
+                const folderName = localStorage.getItem('cashlytics_backup_folder_name');
+                
+                if (isSelected && folderName) {
+                    return `📁 Folder: ${folderName}`;
+                } else if ('showDirectoryPicker' in window) {
+                    return '📁 No folder selected (will prompt on first backup)';
+                } else {
+                    return '📁 Downloads folder (File System API not supported)';
+                }
+            }
+        }
+
+        // Global backup manager instance
+        let autoBackupManager = null;
+
+        // Auto-Backup Helper Functions
+        function toggleAutoBackup(enabled) {
+            if (!autoBackupManager) return;
+            
+            if (enabled) {
+                autoBackupManager.enableAutoBackup();
+                showToast('✅ Auto-backup enabled');
+            } else {
+                autoBackupManager.disableAutoBackup();
+                showToast('❌ Auto-backup disabled');
+            }
+            
+            updateBackupStatus();
+        }
+
+        function forceAutoBackup() {
+            if (!autoBackupManager) {
+                showToast('❌ Auto-backup not available');
+                return;
+            }
+            
+            try {
+                autoBackupManager.forceBackup();
+                updateBackupStatus();
+                showToast('✅ Manual backup completed');
+            } catch (error) {
+                showToast('❌ Backup failed: ' + error.message);
+            }
+        }
+
+        function updateBackupStatus() {
+            const statusElement = document.getElementById('backupStatusText');
+            const checkboxElement = document.getElementById('enableAutoBackup');
+            
+            if (!statusElement || !autoBackupManager) return;
+            
+            const settings = autoBackupManager.getBackupSettings();
+            const status = autoBackupManager.getBackupStatus();
+            const folderStatus = autoBackupManager.getBackupFolderStatus();
+            
+            statusElement.innerHTML = `
+                <div style="margin-bottom: 5px;">${status}</div>
+                <div style="margin-bottom: 5px; font-size: 12px;">${folderStatus}</div>
+                <div style="font-size: 12px; color: #666;">
+                    Status: ${settings.enabled ? '🟢 Active' : '🔴 Disabled'}
+                </div>
+            `;
+            
+            if (checkboxElement) {
+                checkboxElement.checked = settings.enabled;
+            }
+        }
+
+        function showBackupSettings() {
+            if (!autoBackupManager) return;
+            
+            const settings = autoBackupManager.getBackupSettings();
+            const folderStatus = autoBackupManager.getBackupFolderStatus();
+            
+            alert(`🔄 Auto-Backup Settings
+
+📱 Status: ${settings.enabled ? 'Enabled' : 'Disabled'}
+🔔 Notifications: ${settings.notifyUser ? 'On' : 'Off'}
+📁 Backup Location: ${folderStatus}
+⏰ Interval: Every 24 hours
+
+💡 Backups replace the same file (cashlytics-backup.json) in your selected folder.
+
+Supported on: Brave, Chrome, Edge (with File System API)`);
+        }
+
+        async function setupBackupFolder() {
+            if (!autoBackupManager) {
+                showToast('❌ Auto-backup not available');
+                return;
+            }
+
+            showToast('📁 Select backup folder...');
+            const success = await autoBackupManager.setupBackupFolder();
+            
+            if (success) {
+                updateBackupStatus();
+            }
         }
 
         function checkAutoBackup() {
