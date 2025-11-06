@@ -1816,6 +1816,11 @@
                 loadBooks();
                 loadTransactions();
                 updateStats();
+                
+                // Load transaction filters for when user goes to transactions tab
+                if (document.getElementById('filterPaymentMode') && document.getElementById('filterCategory')) {
+                    loadTransactionFilters();
+                }
             }, 10);
             
             // Auto-backup every 24 hours
@@ -1907,6 +1912,13 @@
             }
 
             saveAppData();
+            
+            // Update transaction filters if they exist (after data initialization)
+            setTimeout(() => {
+                if (document.getElementById('filterPaymentMode') && document.getElementById('filterCategory')) {
+                    loadTransactionFilters();
+                }
+            }, 50);
         }
 
         // Format currency according to Indian system
@@ -2249,8 +2261,17 @@
 
         // Load transaction filters
         function loadTransactionFilters() {
+            console.log('Loading transaction filters...');
+            console.log('Payment modes:', appState.paymentModes.length);
+            console.log('Transaction types:', appState.transactionTypes.length);
+            
             // Populate payment mode filter
             const paymentModeFilter = document.getElementById('filterPaymentMode');
+            if (!paymentModeFilter) {
+                console.error('Payment mode filter element not found');
+                return;
+            }
+            
             paymentModeFilter.innerHTML = '<option value="">All Modes</option>';
             appState.paymentModes.forEach(mode => {
                 const option = document.createElement('option');
@@ -2258,9 +2279,15 @@
                 option.textContent = mode;
                 paymentModeFilter.appendChild(option);
             });
+            console.log('Payment mode filter populated with', paymentModeFilter.children.length - 1, 'modes');
 
             // Populate category filter
             const categoryFilter = document.getElementById('filterCategory');
+            if (!categoryFilter) {
+                console.error('Category filter element not found');
+                return;
+            }
+            
             categoryFilter.innerHTML = '<option value="">All Categories</option>';
             appState.transactionTypes.forEach(type => {
                 const option = document.createElement('option');
@@ -2268,6 +2295,7 @@
                 option.textContent = type;
                 categoryFilter.appendChild(option);
             });
+            console.log('Category filter populated with', categoryFilter.children.length - 1, 'categories');
         }
 
         // Load transactions
@@ -2739,6 +2767,12 @@
             appState.transactionTypes.push(typeName);
             saveAppData();
             loadSettings();
+            
+            // Update transaction filters if they exist
+            if (document.getElementById('filterCategory')) {
+                loadTransactionFilters();
+            }
+            
             closeModal('addTypeModal');
             
             document.getElementById('typeName').value = '';
@@ -2753,6 +2787,12 @@
             appState.paymentModes.push(modeName);
             saveAppData();
             loadSettings();
+            
+            // Update transaction filters if they exist
+            if (document.getElementById('filterPaymentMode')) {
+                loadTransactionFilters();
+            }
+            
             closeModal('addPaymentModeModal');
             
             document.getElementById('paymentModeName').value = '';
@@ -3170,6 +3210,11 @@
                 appState.transactionTypes = appState.transactionTypes.filter(t => t !== typeName);
                 saveAppData();
                 loadSettings();
+                
+                // Update transaction filters if they exist
+                if (document.getElementById('filterCategory')) {
+                    loadTransactionFilters();
+                }
             }
         }
 
@@ -3178,6 +3223,11 @@
                 appState.paymentModes = appState.paymentModes.filter(m => m !== modeName);
                 saveAppData();
                 loadSettings();
+                
+                // Update transaction filters if they exist
+                if (document.getElementById('filterPaymentMode')) {
+                    loadTransactionFilters();
+                }
             }
         }
 
