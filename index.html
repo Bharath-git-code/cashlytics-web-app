@@ -1230,16 +1230,19 @@
                             📱 Backup Now
                         </button>
                         <button class="btn btn-secondary" onclick="setupBackupFolder()" style="padding: 12px; font-size: 14px;">
-                            📁 Select Folder
+                            <span id="selectFolderBtnText">📁 Setup Backup</span>
                         </button>
                     </div>
                     
                     <div style="font-size: 12px; color: #666; line-height: 1.4;">
                         <strong>How it works:</strong><br>
+                        <span id="backupHelpText">
                         • Backups replace same file: <code>cashlytics-backup.json</code><br>
-                        • Saves to dedicated "cashlytic-backup" folder<br>
+                        • Desktop: Saves to dedicated folder<br>
+                        • Mobile: Saves to Downloads folder<br>
                         • Works even when you switch between apps<br>
-                        • No internet required • No Downloads spam<br>
+                        • No internet required
+                        </span><br>
                         <button onclick="showBackupSettings()" style="background: none; border: none; color: #2196F3; cursor: pointer; padding: 0; margin-top: 5px; text-decoration: underline;">
                             ⚙️ Advanced Settings
                         </button>
@@ -3991,6 +3994,17 @@
 
             async saveWithFileSystemAPI(data, filename) {
                 try {
+                    // Check if mobile device or mobile mode
+                    const isMobileMode = localStorage.getItem('cashlytics_backup_mobile_mode') === 'true';
+                    const isMobile = this.isMobileDevice();
+                    
+                    if (isMobile || isMobileMode || !('showDirectoryPicker' in window)) {
+                        // Use traditional download for mobile
+                        this.downloadFile(data, filename);
+                        console.log('📱 Mobile backup saved to Downloads');
+                        return;
+                    }
+                    
                     // Check if we have a stored directory handle
                     let dirHandle = await this.getStoredDirectoryHandle();
                     
@@ -4247,12 +4261,16 @@
 
             async setupBackupFolder() {
                 try {
-                    if ('showDirectoryPicker' in window) {
+                    // Check if device is mobile
+                    const isMobile = this.isMobileDevice();
+                    
+                    if ('showDirectoryPicker' in window && !isMobile) {
                         await this.selectBackupFolder();
                         return true;
                     } else {
-                        showToast('ℹ️ File System API not supported. Backups will use Downloads folder.');
-                        return false;
+                        // For mobile or unsupported browsers, use Downloads folder
+                        this.setupMobileBackup();
+                        return true;
                     }
                 } catch (error) {
                     console.error('Failed to setup backup folder:', error);
@@ -4261,18 +4279,38 @@
                 }
             }
 
+            isMobileDevice() {
+                return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                       (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+            }
+
+            setupMobileBackup() {
+                // Set mobile backup mode
+                localStorage.setItem('cashlytics_backup_folder_selected', 'true');
+                localStorage.setItem('cashlytics_backup_folder_name', 'Downloads');
+                localStorage.setItem('cashlytics_backup_mobile_mode', 'true');
+                
+                console.log('📱 Mobile backup mode enabled');
+                showToast('📱 Mobile backup enabled - files will save to Downloads');
+            }
+
             getBackupFolderStatus() {
                 const isSelected = localStorage.getItem('cashlytics_backup_folder_selected') === 'true';
                 const folderName = localStorage.getItem('cashlytics_backup_folder_name');
+                const isMobileMode = localStorage.getItem('cashlytics_backup_mobile_mode') === 'true';
                 
-                console.log('📁 Checking backup folder status:', { isSelected, folderName });
+                console.log('📁 Checking backup folder status:', { isSelected, folderName, isMobileMode });
                 
                 if (isSelected && folderName) {
-                    return `📁 Selected: ${folderName}`;
-                } else if ('showDirectoryPicker' in window) {
+                    if (isMobileMode) {
+                        return `📱 Mobile: Downloads folder`;
+                    } else {
+                        return `📁 Selected: ${folderName}`;
+                    }
+                } else if ('showDirectoryPicker' in window && !this.isMobileDevice()) {
                     return '❌ No folder selected';
                 } else {
-                    return '📁 Downloads folder (File System API not supported)';
+                    return '� Mobile: Tap "Select Folder" to enable';
                 }
             }
         }
@@ -4313,14 +4351,21 @@
         function updateBackupStatus() {
             const statusElement = document.getElementById('backupStatusText');
             const checkboxElement = document.getElementById('enableAutoBackup');
+            const buttonTextElement = document.getElementById('selectFolderBtnText');
             
             if (!statusElement || !autoBackupManager) return;
             
             const settings = autoBackupManager.getBackupSettings();
             const status = autoBackupManager.getBackupStatus();
             const folderStatus = autoBackupManager.getBackupFolderStatus();
+            const isMobile = autoBackupManager.isMobileDevice();
             
-            console.log('🔄 Updating backup status:', { settings, status, folderStatus });
+            console.log('🔄 Updating backup status:', { settings, status, folderStatus, isMobile });
+            
+            // Update button text based on device
+            if (buttonTextElement) {
+                buttonTextElement.textContent = isMobile ? '📱 Enable Backup' : '📁 Select Folder';
+            }
             
             statusElement.innerHTML = `
                 <div style="margin-bottom: 5px;">${status}</div>
