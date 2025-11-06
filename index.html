@@ -2157,9 +2157,16 @@
 
         function loadReportBookSelector() {
             const selector = document.getElementById('reportBookSelector');
+            if (!selector) {
+                console.error('Report book selector element not found');
+                return;
+            }
+            
+            console.log('Loading report book selector with', appState.books.length, 'books');
             selector.innerHTML = '<option value="">All Books</option>';
             
             appState.books.forEach(book => {
+                console.log('Adding book to selector:', book.name);
                 const option = document.createElement('option');
                 option.value = book.id;
                 option.textContent = book.name;
@@ -2171,6 +2178,8 @@
                 
                 selector.appendChild(option);
             });
+            
+            console.log('Report book selector updated with', selector.children.length - 1, 'books');
         }
 
         // Load books
@@ -2231,6 +2240,11 @@
                 bookEl.onclick = () => selectBook(book);
                 container.appendChild(bookEl);
             });
+            
+            // Update report book selector if it exists
+            if (document.getElementById('reportBookSelector')) {
+                loadReportBookSelector();
+            }
         }
 
         // Load transaction filters
@@ -2607,6 +2621,12 @@
             appState.books.push(book);
             saveAppData();
             loadBooks();
+            
+            // Update report book selector if it exists
+            if (document.getElementById('reportBookSelector')) {
+                loadReportBookSelector();
+            }
+            
             closeModal('addBookModal');
             
             // Clear form
@@ -2646,6 +2666,11 @@
                 loadBooks();
                 loadTransactions();
                 updateStats();
+                
+                // Update report book selector if it exists
+                if (document.getElementById('reportBookSelector')) {
+                    loadReportBookSelector();
+                }
                 
                 showSuccess(`Book "${book.name}" and its transactions have been deleted.`);
             }
