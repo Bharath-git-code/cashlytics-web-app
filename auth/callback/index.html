@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Authentication - Cashlytics</title>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.22/auth0-spa-js.production.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .callback-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #2196F3;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error-details {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            text-align: left;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="callback-container">
+        <div id="loading-state">
+            <div class="loader"></div>
+            <h2>Processing GitHub Authentication</h2>
+            <p>Please wait while we complete your GitHub login...</p>
+        </div>
+        
+        <div id="success-state" style="display: none;">
+            <div class="status-icon success">✅</div>
+            <h2>Authentication Successful!</h2>
+            <p>Your GitHub account has been connected successfully. You can now backup your Cashlytics data to your private GitHub repository.</p>
+            <a href="../.." class="btn">Return to Cashlytics</a>
+        </div>
+        
+        <div id="error-state" style="display: none;">
+            <div class="status-icon error">❌</div>
+            <h2>Authentication Failed</h2>
+            <p id="error-message">There was an issue connecting your GitHub account. Please try again.</p>
+            <div id="error-details" class="error-details" style="display: none;"></div>
+            <a href="../.." class="btn">Return to Cashlytics</a>
+        </div>
+    </div>
+
+    <script>
+        async function handleCallback() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const state = urlParams.get('state');
+                const error = urlParams.get('error');
+                
+                if (error) {
+                    throw new Error(`GitHub OAuth error: ${error}`);
+                }
+                
+                if (!code || !state) {
+                    throw new Error('Missing OAuth parameters');
+                }
+                
+                // Verify state
+                const storedState = localStorage.getItem('oauth_state');
+                if (!storedState || storedState !== state) {
+                    throw new Error('Invalid OAuth state parameter');
+                }
+                
+                // Since we can't exchange the code for a token on client-side securely,
+                // we'll redirect back to main app and let it handle the token exchange
+                // or guide the user through a personal access token setup
+                
+                showRedirecting();
+                
+                // Get return URL
+                const returnUrl = localStorage.getItem('oauth_return_url') || '../..';
+                
+                // Redirect back with the code and state
+                const redirectUrl = new URL(returnUrl, window.location.origin);
+                redirectUrl.searchParams.set('code', code);
+                redirectUrl.searchParams.set('state', state);
+                
+                window.location.href = redirectUrl.href;
+                
+            } catch (error) {
+                console.error('Callback error:', error);
+                showError(error.message, error);
+            }
+        }
+        
+        function showRedirecting() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'none';
+            
+            const successState = document.getElementById('success-state');
+            successState.querySelector('h2').textContent = 'Redirecting...';
+            successState.querySelector('p').textContent = 'Taking you back to Cashlytics...';
+            successState.style.display = 'block';
+        }
+        
+        function showSuccess() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'none';
+            document.getElementById('success-state').style.display = 'block';
+        }
+        
+        function showError(message, error) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('success-state').style.display = 'none';
+            
+            const errorState = document.getElementById('error-state');
+            const errorMessage = document.getElementById('error-message');
+            const errorDetails = document.getElementById('error-details');
+            
+            errorMessage.textContent = message || 'An unexpected error occurred.';
+            
+            if (error && typeof error === 'object') {
+                errorDetails.textContent = JSON.stringify(error, null, 2);
+                errorDetails.style.display = 'block';
+            }
+            
+            errorState.style.display = 'block';
+        }
+        
+        // Auto-handle callback
+        handleCallback();
+    </script>
+</body>
+</html>
