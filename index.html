@@ -3096,24 +3096,26 @@
         }
 
         function generateChartColors(count) {
-            const baseColors = [
-  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-  '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384',
-  '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-
-  '#E6194B', '#3CB44B', '#FFE119', '#0082C8', '#F58231',
-  '#911EB4', '#46F0F0', '#F032E6', '#D2F53C', '#008080',
-  '#AA6E28', '#800000', '#808000', '#000080', '#808080',
-  '#FABEBE', '#BAFFC9', '#FFD8B1', '#AAFFC3', '#DCBEFF',
-  '#A9A9A9', '#FFB3BA', '#BFFCC6', '#B3E6FF', '#FFDFBA',
-  '#C28FFF', '#8AE9C1', '#FFB7E8', '#C0FFEE', '#A8FF3E',
-  '#FF6F91', '#FFC75F', '#F9F871', '#6A2C70', '#8D6FF7',
-  '#4ECDC4', '#556270', '#C7F464', '#FF6B6B', '#C44D58',
-  '#1A535C', '#4ECDC4', '#F7FFF7', '#FF6B6B', '#FFE66D',
-  '#7FDBFF', '#39CCCC', '#3D9970', '#85144B', '#B10DC9'
-]
-;
+                        const baseColors = [
+    // Vibrant and unique colors
+    '#556270', '#C7F464', '#FF6B6B', '#C44D58', '#1A535C', '#4ECDC4', '#FFE66D',
+    '#7FDBFF', '#39CCCC', '#3D9970', '#85144B', '#B10DC9', '#36A2EB', '#FFCE56', '#9966FF',
+    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#E6194B', '#3CB44B', '#FFE119', '#0082C8', '#F58231',
+    '#911EB4', '#46F0F0', '#F032E6', '#D2F53C', '#008080', '#AA6E28', '#800000', '#808000', '#000080',
+    '#808080', '#FABEBE', '#BAFFC9', '#FFD8B1', '#AAFFC3', '#DCBEFF', '#A9A9A9', '#FFB3BA', '#BFFCC6',
+    '#B3E6FF', '#FFDFBA', '#C28FFF', '#8AE9C1', '#FFB7E8', '#C0FFEE', '#A8FF3E', '#FF6F91', '#FFC75F',
+    '#F9F871', '#6A2C70', '#8D6FF7', '#00B8A9', '#F6416C', '#43DDE6', '#FFDE7D', '#2B2E4A', '#E84545',
+    '#903749', '#53354A', '#FFD460', '#1FAB89', '#62D2A2', '#ED6663', '#FFA372', '#28B5B5', '#3B9C9C',
+    '#FFB400', '#FF3F00', '#FF005C', '#00C1D4', '#00BDAE', '#F7B32B', '#EA5C5A', '#A3A847', '#6A0572',
+    '#AB83A1', '#F8B195', '#F67280', '#C06C84', '#6C5B7B', '#355C7D', '#2A363B', '#E84A5F', '#FF847C',
+    '#FECEA8', '#99B898', '#FF6F69', '#FFCC5C', '#88D8B0'
+];
             
+            // Use unique colors if enough are available
+            if (count <= baseColors.length) {
+                return baseColors.slice(0, count);
+            }
+            // Otherwise, repeat colors as fallback
             const colors = [];
             for (let i = 0; i < count; i++) {
                 colors.push(baseColors[i % baseColors.length]);
