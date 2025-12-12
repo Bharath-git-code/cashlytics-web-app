@@ -1220,9 +1220,14 @@
                         </button>
                     </div>
                     <div id="github-backup-controls" style="display: none; margin-bottom: 15px;">
-                        <button id="manual-backup-btn" class="btn" onclick="manualGitHubBackup()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #28a745, #20c997); color: #fff; width: 100%; border-radius: 8px;">
-                            🚀 Backup Now
-                        </button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <button id="manual-backup-btn" class="btn" onclick="manualGitHubBackup()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #28a745, #20c997); color: #fff; border-radius: 8px;">
+                                🚀 Backup Now
+                            </button>
+                            <button id="import-backup-btn" class="btn" onclick="importFromGitHub()" style="padding: 12px; font-size: 14px; background: linear-gradient(135deg, #17a2b8, #138496); color: #fff; border-radius: 8px;">
+                                📥 Import Data
+                            </button>
+                        </div>
                         <p id="backup-status" style="font-size: 12px; color: #666; margin-top: 8px; text-align: center;"></p>
                     </div>
                     <div style="font-size: 12px; color: #666; line-height: 1.4;">
@@ -1231,6 +1236,7 @@
                         • We create a private <code>cashlytics-backup</code> repository<br>
                         • Your data is automatically backed up every 24 hours<br>
                         • Only you can access your backup - it's completely private<br>
+                        • Use "Import Data" to restore backup on new devices<br>
                         • Works across all your devices when you're logged in<br>
                     </div>
                 </div>
@@ -5076,10 +5082,7 @@ Ready to create your backup token?`;
                     localStorage.setItem('github_access_token', token);
                     
                     this.updateLoginButton();
-                    showSuccess(`✅ Connected to GitHub as ${this.userInfo.login}!`);
-                    
-                    // Perform initial backup
-                    setTimeout(() => this.backupNow(), 1000);
+                    showSuccess(`✅ Connected to GitHub as ${this.userInfo.login}!\n\n💡 Ready to backup and sync your data across devices.`);
                     
                 } catch (error) {
                     console.error('Token verification failed:', error);
@@ -5141,6 +5144,19 @@ Ready to create your backup token?`;
                     }
                 };
                 
+                // Debug: Log the backup data to console
+                console.log('GitHub Backup Data:', backupData);
+                console.log('Books count:', backupData.books.length);
+                console.log('Transactions count:', backupData.transactions.length);
+                
+                // Check if data is empty and warn user
+                if (backupData.books.length === 0 && backupData.transactions.length === 0) {
+                    const shouldContinue = confirm('⚠️ Warning: No books or transactions found to backup!\n\nThis could mean:\n• You haven\'t created any books yet\n• Data hasn\'t loaded properly\n• You\'re on a fresh installation\n\nDo you want to continue with an empty backup?');
+                    if (!shouldContinue) {
+                        return false;
+                    }
+                }
+                
                 return await githubBackup(backupData);
             }
             
@@ -5163,7 +5179,174 @@ Ready to create your backup token?`;
                     }
                 };
                 
+                // Debug: Log the auto backup data
+                console.log('GitHub Auto Backup Data:', backupData);
+                console.log('Auto backup - Books:', backupData.books.length, 'Transactions:', backupData.transactions.length);
+                
+                // Only proceed if there's actual data to backup
+                if (backupData.books.length === 0 && backupData.transactions.length === 0) {
+                    console.log('Skipping auto backup - no data to backup');
+                    return false;
+                }
+                
                 return await githubBackup(backupData);
+            }
+            
+            async importFromGitHub() {
+                if (!this.token) {
+                    showError('Please connect to GitHub first.');
+                    return false;
+                }
+                
+                try {
+                    showSuccess('🔄 Importing data from GitHub...');
+                    
+                    // Get user info for repository path
+                    const userResp = await fetch('https://api.github.com/user', {
+                        headers: { Authorization: 'Bearer ' + this.token }
+                    });
+                    
+                    if (!userResp.ok) {
+                        throw new Error('Failed to get user info.');
+                    }
+                    
+                    const user = await userResp.json();
+                    const username = user.login;
+                    const repoName = 'cashlytics-backup';
+                    
+                    // Check if backup file exists
+                    const fileResp = await fetch(`https://api.github.com/repos/${username}/${repoName}/contents/backup.json`, {
+                        headers: { Authorization: 'Bearer ' + this.token }
+                    });
+                    
+                    if (fileResp.status === 404) {
+                        showError('❌ No backup found in your GitHub repository.\n\nCreate a backup first by clicking "Backup Now".');
+                        return false;
+                    }
+                    
+                    if (!fileResp.ok) {
+                        throw new Error('Failed to access backup repository.');
+                    }
+                    
+                    const fileData = await fileResp.json();
+                    
+                    // Decode the base64 content
+                    const backupContent = atob(fileData.content);
+                    const importedData = JSON.parse(backupContent);
+                    
+                    // Validate imported data structure
+                    if (!importedData.books && !importedData.transactions) {
+                        throw new Error('Invalid backup file format.');
+                    }
+                    
+                    // Ask user about merge or replace
+                    const hasExistingData = appState.books.length > 0 || appState.transactions.length > 0;
+                    let shouldProceed = true;
+                    
+                    if (hasExistingData) {
+                        const choice = confirm(
+                            `📊 You have existing data:\n` +
+                            `Current: ${appState.books.length} books, ${appState.transactions.length} transactions\n` +
+                            `GitHub backup: ${(importedData.books || []).length} books, ${(importedData.transactions || []).length} transactions\n\n` +
+                            `Choose:\n` +
+                            `OK = MERGE data (combine both)\n` +
+                            `Cancel = REPLACE current data with backup`
+                        );
+                        
+                        if (choice) {
+                            // Merge data
+                            this.mergeImportedData(importedData);
+                        } else {
+                            // Replace data
+                            this.replaceWithImportedData(importedData);
+                        }
+                    } else {
+                        // No existing data, just import
+                        this.replaceWithImportedData(importedData);
+                    }
+                    
+                    showSuccess(`✅ Successfully imported from GitHub!\n\nImported: ${(importedData.books || []).length} books, ${(importedData.transactions || []).length} transactions`);
+                    
+                    // Refresh UI
+                    loadBooks();
+                    loadTransactions();
+                    loadReports();
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('GitHub import failed:', error);
+                    showError(`Failed to import from GitHub: ${error.message}`);
+                    return false;
+                }
+            }
+            
+            mergeImportedData(importedData) {
+                // Merge books (avoid duplicates by name)
+                if (importedData.books) {
+                    importedData.books.forEach(importedBook => {
+                        const existingBook = appState.books.find(book => book.name === importedBook.name);
+                        if (!existingBook) {
+                            // Generate new ID for imported book
+                            importedBook.id = Date.now() + Math.random();
+                            appState.books.push(importedBook);
+                        }
+                    });
+                }
+                
+                // Merge transactions (avoid duplicates by date + amount + description)
+                if (importedData.transactions) {
+                    importedData.transactions.forEach(importedTxn => {
+                        const isDuplicate = appState.transactions.some(txn => 
+                            txn.date === importedTxn.date && 
+                            txn.amount === importedTxn.amount && 
+                            txn.description === importedTxn.description
+                        );
+                        
+                        if (!isDuplicate) {
+                            // Generate new ID for imported transaction
+                            importedTxn.id = Date.now() + Math.random();
+                            appState.transactions.push(importedTxn);
+                        }
+                    });
+                }
+                
+                // Merge other data
+                this.mergeArrayData('transactionTypes', importedData.transactionTypes);
+                this.mergeArrayData('paymentModes', importedData.paymentModes);
+                
+                // Update settings if imported
+                if (importedData.settings) {
+                    appState.settings = Object.assign(appState.settings, importedData.settings);
+                }
+                
+                saveAppData();
+            }
+            
+            replaceWithImportedData(importedData) {
+                // Replace all data with imported data
+                appState.books = importedData.books || [];
+                appState.transactions = importedData.transactions || [];
+                appState.transactionTypes = importedData.transactionTypes || [];
+                appState.paymentModes = importedData.paymentModes || [];
+                
+                if (importedData.settings) {
+                    appState.settings = Object.assign(appState.settings, importedData.settings);
+                }
+                
+                saveAppData();
+            }
+            
+            mergeArrayData(key, importedArray) {
+                if (!importedArray) return;
+                
+                importedArray.forEach(importedItem => {
+                    const exists = appState[key].some(item => item.name === importedItem.name);
+                    if (!exists) {
+                        importedItem.id = Date.now() + Math.random();
+                        appState[key].push(importedItem);
+                    }
+                });
             }
             
             shouldAutoBackup() {
@@ -5184,6 +5367,15 @@ Ready to create your backup token?`;
         function manualGitHubBackup() {
             if (simpleGitHubBackup && simpleGitHubBackup.token) {
                 simpleGitHubBackup.backupNow();
+            } else {
+                showError('GitHub not connected. Please connect first.');
+            }
+        }
+        
+        // Import from GitHub function
+        function importFromGitHub() {
+            if (simpleGitHubBackup && simpleGitHubBackup.token) {
+                simpleGitHubBackup.importFromGitHub();
             } else {
                 showError('GitHub not connected. Please connect first.');
             }
