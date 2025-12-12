@@ -1863,10 +1863,10 @@
             // Auto-backup every 24 hours (legacy)
             checkAutoBackup();
             
-            // Initialize PWA Auto-Backup Manager
-            setTimeout(() => {
-                autoBackupManager = new PWAAutoBackupManager();
-            }, 2000); // Wait 2 seconds for app to fully initialize
+            // Initialize PWA Auto-Backup Manager (disabled by default to prevent automatic downloads)
+            // setTimeout(() => {
+            //     autoBackupManager = new PWAAutoBackupManager();
+            // }, 2000); // Wait 2 seconds for app to fully initialize
             
             // Register service worker for PWA
             if ('serviceWorker' in navigator) {
@@ -1876,9 +1876,11 @@
                 navigator.serviceWorker.addEventListener('message', event => {
                     if (event.data.type === 'BACKGROUND_BACKUP_REQUEST') {
                         console.log('🔄 Background backup requested by service worker');
-                        if (autoBackupManager) {
-                            autoBackupManager.performSmartBackup();
-                        }
+                        // Auto file download disabled - only save to localStorage
+                        createAutoBackup();
+                        // if (autoBackupManager) {
+                        //     autoBackupManager.performSmartBackup();
+                        // }
                     }
                 });
             }
@@ -3551,7 +3553,7 @@
             });
             
             // Update title
-            document.title = t('app_title');
+            document.title = t('cashlytics');
             
             // Refresh any dynamically loaded content
             if (typeof loadBooks === 'function') {
@@ -3833,13 +3835,14 @@
             }, 10000);
         }
 
-        // PWA Auto-Backup Manager
+        // PWA Auto-Backup Manager (NOTE: Disabled to prevent automatic downloads)
         class PWAAutoBackupManager {
             constructor() {
-                this.isEnabled = this.getBackupSettings().enabled;
+                this.isEnabled = false; // Disabled by default to prevent automatic downloads
                 this.backupInterval = 24 * 60 * 60 * 1000; // 24 hours
                 this.checkInterval = 30 * 60 * 1000; // Check every 30 minutes
-                this.init();
+                // Don't auto-initialize to prevent automatic downloads
+                // this.init();
             }
 
             init() {
@@ -3859,7 +3862,7 @@
 
             getBackupSettings() {
                 const defaultSettings = {
-                    enabled: true,
+                    enabled: false, // Default to disabled to prevent automatic downloads
                     maxBackups: 7,
                     notifyUser: true
                 };
@@ -4005,8 +4008,8 @@
                     const isMobile = this.isMobileDevice();
                     
                     if (isMobile || isMobileMode || !('showDirectoryPicker' in window)) {
-                        // Use traditional download for mobile
-                        this.downloadFile(data, filename);
+                        // Fix: Use downloadBackup instead of undefined downloadFile
+                        this.downloadBackup(data, filename);
                         console.log('📱 Mobile backup saved to Downloads');
                         return;
                     }
