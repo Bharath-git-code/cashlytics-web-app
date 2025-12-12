@@ -4841,22 +4841,36 @@ Supported on: Brave, Chrome, Edge (with File System API)`);
             
             login() {
                 const instructions = `
-To connect GitHub for automatic backup:
+🔐 GitHub Token Setup - Step by Step Guide
 
-1. This will open GitHub to create a Personal Access Token
-2. IMPORTANT: Make sure these permissions are selected:
-   ✅ 'repo' (Full control of private repositories)
-   ✅ 'repo:status' (Access commit status)  
-   ✅ 'public_repo' (Access public repositories)
-3. Set expiration to 'No expiration' or at least 1 year
-4. Copy the generated token
-5. Come back and paste it here
+📋 WHAT YOU'LL DO:
+1. Open GitHub's token creation page
+2. Configure the right permissions
+3. Generate and copy your token
+4. Paste it back here
 
-The token needs 'repo' permissions to create and write to your backup repository.
+🎯 REQUIRED PERMISSIONS:
+✅ "repo" - Full control of private repositories
+   └── This allows creating your backup repository
+✅ "public_repo" - Access public repositories  
+   └── Ensures compatibility with all repo types
 
-Continue?`;
+⚠️ IMPORTANT SETTINGS:
+• Set expiration to "No expiration" (or minimum 1 year)
+• Keep "Enable SSO" unchecked (unless required by your org)
+• Repository access: "All repositories" 
+
+🔒 SECURITY NOTE:
+Your token stays on YOUR device only. We never see or store it on our servers.
+
+Ready to create your backup token?`;
                 
                 if (!confirm(instructions)) return;
+                
+                // Check if we're in PWA mode
+                const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                             window.navigator.standalone === true ||
+                             document.referrer.includes('android-app://');
                 
                 // Open GitHub token creation page
                 const tokenUrl = 'https://github.com/settings/personal-access-tokens/new?' + 
@@ -4865,35 +4879,184 @@ Continue?`;
                         'description': 'Cashlytics Backup Access - Full Repository Control'
                     }).toString();
                 
-                const authWindow = window.open(tokenUrl, '_blank');
+                let authWindow = null;
                 
-                if (!authWindow) {
-                    showError('Failed to open GitHub. Please check if popups are blocked.');
-                    return;
+                if (!isPWA) {
+                    // Try to open popup in regular browser mode
+                    authWindow = window.open(tokenUrl, '_blank');
+                    
+                    if (!authWindow) {
+                        showError('Popup blocked. Please allow popups or use the manual method below.');
+                    }
+                } else {
+                    // In PWA mode, open in current window/tab
+                    showSuccess('Opening GitHub in new tab. After creating your token, come back to paste it.');
+                    window.open(tokenUrl, '_blank');
                 }
                 
-                // Wait for user to get token
+                // Show token input modal immediately in PWA mode, or after delay in regular mode
+                const delay = isPWA ? 1000 : 3000;
                 setTimeout(() => {
-                    const tokenInstructions = `
-PASTE YOUR GITHUB TOKEN:
-
-Make sure you selected these permissions:
-• 'repo' - Full control of private repositories ✅
-• This allows creating and writing to backup repositories
-
-Paste your GitHub Personal Access Token below:`;
-                    
-                    const token = prompt(tokenInstructions);
-                    
-                    if (token && token.trim()) {
-                        this.setToken(token.trim());
-                        if (authWindow && !authWindow.closed) {
-                            authWindow.close();
-                        }
-                    } else {
-                        showError('Token is required to enable GitHub backup.');
+                    this.showTokenInputModal(authWindow);
+                }, delay);
+            }
+            
+            showTokenInputModal(authWindow) {
+                // Create modal for token input (PWA-friendly)
+                const modalHtml = `
+                    <div id="tokenModal" class="modal-overlay" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;">
+                        <div class="modal-content" style="max-width: 600px; position: relative; max-height: 90vh; overflow-y: auto;">
+                            <div class="modal-header">
+                                <h3>🔑 GitHub Token Setup</h3>
+                                <button class="close-btn" onclick="document.getElementById('tokenModal').remove()">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+                                    <h4 style="margin: 0 0 10px 0; color: #007bff;">📋 Step-by-Step Instructions:</h4>
+                                    <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                                        <li><strong>🎯 TOKEN TYPE:</strong> Select <strong>"Personal access tokens (classic)"</strong> NOT "Fine-grained"</li>
+                                        <li><strong>Token name:</strong> Leave as "Cashlytics Backup Access" (pre-filled)</li>
+                                        <li><strong>Expiration:</strong> Select <code>No expiration</code> or <code>Custom</code> → 1 year</li>
+                                        <li><strong>Description:</strong> Leave as-is (optional)</li>
+                                        <li><strong>Repository access:</strong> Choose <code>All repositories</code></li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0066cc;">
+                                    <h4 style="margin: 0 0 10px 0; color: #0066cc;">⚡ IMPORTANT: Choose the RIGHT Token Type</h4>
+                                    <div style="background: white; padding: 12px; border-radius: 6px; margin: 10px 0;">
+                                        <p style="margin: 0 0 8px 0; font-weight: bold;">When GitHub opens, you'll see two options:</p>
+                                        <div style="margin: 8px 0;">
+                                            ✅ <strong>Personal access tokens (classic)</strong> ← SELECT THIS ONE<br>
+                                            <span style="color: #666; font-size: 13px; margin-left: 20px;">→ Easier to use, works everywhere</span>
+                                        </div>
+                                        <div style="margin: 8px 0;">
+                                            ❌ <strong>Fine-grained personal access tokens</strong> ← DON'T USE<br>
+                                            <span style="color: #666; font-size: 13px; margin-left: 20px;">→ More complex, may cause issues</span>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 8px 0 0 0; font-size: 13px; font-style: italic;">💡 Classic tokens are the standard choice and work reliably with our backup system.</p>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                                    <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ CRITICAL: Select These Permissions</h4>
+                                    <div style="margin-bottom: 15px;">
+                                        <p style="margin: 5px 0; font-weight: bold;">✅ Check these boxes EXACTLY:</p>
+                                        <div style="background: white; padding: 10px; border-radius: 4px; font-family: monospace; border: 1px solid #ddd;">
+                                            ☐ <strong>repo</strong> - Full control of private repositories<br>
+                                            &nbsp;&nbsp;&nbsp;├─ ☐ repo:status<br>
+                                            &nbsp;&nbsp;&nbsp;├─ ☐ repo_deployment<br>
+                                            &nbsp;&nbsp;&nbsp;├─ ☐ public_repo<br>
+                                            &nbsp;&nbsp;&nbsp;└─ ☐ repo:invite
+                                        </div>
+                                        <p style="margin: 10px 0 5px 0; font-size: 13px; color: #666;"><strong>Quick tip:</strong> Just click the main "repo" checkbox and it will select all sub-permissions automatically!</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #17a2b8;">
+                                    <h4 style="margin: 0 0 10px 0; color: #0c5460;">🖼️ Visual Guide:</h4>
+                                    <div style="font-size: 13px; line-height: 1.6;">
+                                        <p><strong>0.</strong> 🎯 <strong>FIRST:</strong> Click on <em>"Personal access tokens (classic)"</em> (ignore "Fine-grained")</p>
+                                        <p><strong>1.</strong> Look for a section titled <em>"Repository permissions"</em> or <em>"Select scopes"</em></p>
+                                        <p><strong>2.</strong> Find the checkbox labeled <strong>"repo"</strong> with description <em>"Full control of private repositories"</em></p>
+                                        <p><strong>3.</strong> Click that checkbox - it should turn green ✅</p>
+                                        <p><strong>4.</strong> Scroll down and click the green <strong>"Generate token"</strong> button</p>
+                                        <p><strong>5.</strong> Copy the long token that appears (starts with 'ghp_' for classic tokens)</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f8d7da; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #dc3545;">
+                                    <h4 style="margin: 0 0 10px 0; color: #721c24;">🚨 Common Mistakes to Avoid:</h4>
+                                    <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+                                        <li>❌ Don't select only "public_repo" - you need full "repo" access</li>
+                                        <li>❌ Don't set expiration to less than 1 year</li>
+                                        <li>❌ Don't close the GitHub tab before copying your token</li>
+                                        <li>❌ Don't share your token with anyone</li>
+                                    </ul>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label for="tokenInput" style="display: block; margin-bottom: 8px; font-weight: bold;">🔐 Paste Your GitHub Token Here:</label>
+                                    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 
+                                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 14px;"/>
+                                    <small style="color: #666; display: block; margin-top: 5px;">Your token is stored securely in your browser's local storage only</small>
+                                </div>
+                                
+                                <details style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; padding: 10px;">
+                                    <summary style="cursor: pointer; font-weight: bold; color: #495057;">🔧 Troubleshooting & FAQ</summary>
+                                    <div style="margin-top: 10px; font-size: 13px;">
+                                        <p><strong>Q: Which token type should I choose?</strong><br>
+                                        A: Always choose <strong>"Personal access tokens (classic)"</strong>. Fine-grained tokens are more complex and may not work properly.</p>
+                                        
+                                        <p><strong>Q: I don't see the "repo" checkbox</strong><br>
+                                        A: Make sure you selected "classic" tokens first, then scroll down - permissions are usually below the token name/description fields.</p>
+                                        
+                                        <p><strong>Q: GitHub says "insufficient permissions"</strong><br>
+                                        A: Make sure you selected the main "repo" checkbox, not just sub-permissions, and used classic tokens.</p>
+                                        
+                                        <p><strong>Q: My token starts with different letters</strong><br>
+                                        A: Classic tokens start with 'ghp_'. Fine-grained tokens start with 'github_pat_' - use classic for best compatibility!</p>
+                                        
+                                        <p><strong>Q: Can I reuse a token from another app?</strong><br>
+                                        A: Yes, if it's a classic token with "repo" permissions. But we recommend creating a dedicated token for security.</p>
+                                        
+                                        <p><strong>Q: Is this secure?</strong><br>
+                                        A: Yes! Your token stays on your device and is only used to backup YOUR data to YOUR repository.</p>
+                                    </div>
+                                </details>
+                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button onclick="document.getElementById('tokenModal').remove()" 
+                                            style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                                    <button onclick="simpleGitHubBackup.handleTokenSubmit('${authWindow ? 'close' : 'noclose'}')" 
+                                            style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer;">🚀 Connect GitHub</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                // Focus on input and handle Enter key
+                const tokenInput = document.getElementById('tokenInput');
+                tokenInput.focus();
+                tokenInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleTokenSubmit(authWindow ? 'close' : 'noclose');
                     }
-                }, 3000);
+                });
+            }
+            
+            handleTokenSubmit(shouldCloseWindow) {
+                const tokenInput = document.getElementById('tokenInput');
+                const token = tokenInput ? tokenInput.value.trim() : '';
+                
+                if (token) {
+                    this.setToken(token);
+                    // Try to close the GitHub auth window if it exists and is still open
+                    if (shouldCloseWindow === 'close') {
+                        try {
+                            // Check if running in PWA mode
+                            const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                                         window.navigator.standalone === true ||
+                                         document.referrer.includes('android-app://');
+                            
+                            if (!isPWA) {
+                                // Only try to close windows if not in PWA mode
+                                if (typeof authWindow !== 'undefined' && authWindow && !authWindow.closed) {
+                                    authWindow.close();
+                                }
+                            }
+                        } catch (e) {
+                            // Ignore errors when closing window - common in PWA mode
+                            console.log('Could not close auth window (this is normal in PWA mode)');
+                        }
+                    }
+                    document.getElementById('tokenModal').remove();
+                } else {
+                    showError('Please enter your GitHub token.');
+                    tokenInput.focus();
+                }
             }
             
             async setToken(token) {
